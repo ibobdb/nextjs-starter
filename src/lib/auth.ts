@@ -1,7 +1,10 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { PrismaClient } from '@prisma/client';
-import { getVerificationEmailTemplate } from '@/utils/templates/verification-email';
+import {
+  getVerificationEmailTemplate,
+  getPasswordResetEmailTemplate,
+} from '@/utils/templates/';
 import { sendEmail } from '@/utils/resend';
 const prisma = new PrismaClient();
 export const auth = betterAuth({
@@ -13,6 +16,20 @@ export const auth = betterAuth({
     minPasswordLength: 5,
     maxPasswordLength: 128,
     requireEmailVerification: true,
+    sendResetPassword: async ({ user, url }) => {
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Reset your password',
+          html: getPasswordResetEmailTemplate(url, user.name),
+        });
+      } catch (error) {
+        throw error;
+      }
+    },
+    // onPasswordReset: async ({ user }: any, request: any) => {
+    //   console.log(`Password for user ${user.email} has been reset.`);
+    // },
   },
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   secret: process.env.BETTER_AUTH_SECRET,
@@ -29,6 +46,7 @@ export const auth = betterAuth({
       }
     },
   },
+
   session: {
     expiresIn: 60 * 60 * 24 * 1,
     updateAge: 60 * 60,
