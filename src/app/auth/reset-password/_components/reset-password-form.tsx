@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -56,7 +56,7 @@ interface ResetPasswordFormProps {
   token: string | null;
 }
 
-export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
+function ResetPasswordFormContent({ token }: ResetPasswordFormProps) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -153,7 +153,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-lg">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">
           Reset Password
@@ -274,4 +274,11 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       </CardFooter>
     </Card>
   );
+}
+
+export default function ResetPasswordForm() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+
+  return <ResetPasswordFormContent token={token} />;
 }
