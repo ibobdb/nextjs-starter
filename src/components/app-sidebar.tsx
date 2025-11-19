@@ -26,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Role } from '@/lib/rbac/components/role';
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -68,85 +69,90 @@ export function AppSidebar() {
 
       <SidebarContent className={cn(isCollapsed && 'px-0')}>
         {items.map((group) => (
-          <SidebarGroup key={group.label} className={cn(isCollapsed && 'px-0')}>
-            {!isCollapsed && (
-              <SidebarGroupLabel className="text-xs font-medium text-muted-foreground/80 px-3">
-                {group.label}
-              </SidebarGroupLabel>
-            )}
+          <Role role={group.roles} key={group.label}>
+            <SidebarGroup
+              key={group.label}
+              className={cn(isCollapsed && 'px-0')}
+            >
+              {!isCollapsed && (
+                <SidebarGroupLabel className="text-xs font-medium text-muted-foreground/80 px-3">
+                  {group.label}
+                </SidebarGroupLabel>
+              )}
 
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => {
-                  const segment = item.url
-                    .split('/')
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .join('/');
-                  const active = activeSegment === segment;
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => {
+                    const segment = item.url
+                      .split('/')
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .join('/');
+                    const active = activeSegment === segment;
 
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={active}
-                        tooltip={isCollapsed ? item.title : undefined}
-                        className={cn(
-                          'flex items-center gap-3 rounded-md transition-colors',
-                          isCollapsed
-                            ? 'justify-center px-0 py-2.5 mx-auto w-fit hover:bg-transparent'
-                            : 'justify-between px-3 py-2',
-                          active
-                            ? 'bg-accent text-accent-foreground font-medium'
-                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                        )}
-                      >
-                        <Link
-                          href={item.url}
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={active}
+                          tooltip={isCollapsed ? item.title : undefined}
                           className={cn(
-                            'flex items-center',
+                            'flex items-center gap-3 rounded-md transition-colors',
                             isCollapsed
-                              ? 'justify-center w-full'
-                              : 'w-full justify-between'
+                              ? 'justify-center px-0 py-2.5 mx-auto w-fit hover:bg-transparent'
+                              : 'justify-between px-3 py-2',
+                            active
+                              ? 'bg-accent text-accent-foreground font-medium'
+                              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                           )}
                         >
-                          <div
+                          <Link
+                            href={item.url}
                             className={cn(
                               'flex items-center',
-                              isCollapsed ? '' : 'gap-3'
+                              isCollapsed
+                                ? 'justify-center w-full'
+                                : 'w-full justify-between'
                             )}
                           >
-                            <item.icon size={18} className="shrink-0" />
-                            {!isCollapsed && <span>{item.title}</span>}
-                          </div>
-                        </Link>
-                      </SidebarMenuButton>
-                      {!isCollapsed &&
-                        item.subItem &&
-                        item.subItem.map((subitem, i) => {
-                          return (
-                            <DropdownMenu key={i}>
-                              <DropdownMenuTrigger asChild>
-                                <SidebarMenuAction>
-                                  <MoreHorizontal />
-                                </SidebarMenuAction>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent side="right" align="start">
-                                <DropdownMenuItem>
-                                  <Link href={subitem.url}>
-                                    <span>{subitem.title}</span>
-                                  </Link>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          );
-                        })}
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+                            <div
+                              className={cn(
+                                'flex items-center',
+                                isCollapsed ? '' : 'gap-3'
+                              )}
+                            >
+                              <item.icon size={18} className="shrink-0" />
+                              {!isCollapsed && <span>{item.title}</span>}
+                            </div>
+                          </Link>
+                        </SidebarMenuButton>
+                        {!isCollapsed &&
+                          item.subItem &&
+                          item.subItem.map((subitem, i) => {
+                            return (
+                              <DropdownMenu key={i}>
+                                <DropdownMenuTrigger asChild>
+                                  <SidebarMenuAction>
+                                    <MoreHorizontal />
+                                  </SidebarMenuAction>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent side="right" align="start">
+                                  <DropdownMenuItem>
+                                    <Link href={subitem.url}>
+                                      <span>{subitem.title}</span>
+                                    </Link>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            );
+                          })}
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </Role>
         ))}
       </SidebarContent>
       <SidebarFooter

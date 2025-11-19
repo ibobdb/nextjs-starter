@@ -1,10 +1,12 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { PrismaClient } from '@prisma/client';
+import { customSession } from 'better-auth/plugins';
 import {
   getVerificationEmailTemplate,
   getPasswordResetEmailTemplate,
 } from '@/utils/templates/';
+
 import { sendEmail } from '@/utils/resend';
 const prisma = new PrismaClient();
 export const auth = betterAuth({
@@ -15,7 +17,7 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 5,
     maxPasswordLength: 128,
-    requireEmailVerification: true,
+    requireEmailVerification: false,
     sendResetPassword: async ({ user, url }) => {
       try {
         await sendEmail({
@@ -51,8 +53,42 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 1,
     updateAge: 60 * 60,
   },
-  // session: {
-  //   expiresIn: 30,
-  //   updateAge: 30,
-  // },
+  plugins: [
+    customSession(async ({ user, session }) => {
+      const roles = await prisma.user.findFirst({
+        where: { id: session.userId },
+        include: {
+          userRoles: {
+            include: {
+              role: {
+                include: {
+                  rolePermissions: {
+                    include: {
+                      permission: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const permissionList: string[] =
+        roles?.userRoles.flatMap((ur) =>
+          ur.role.rolePermissions.map((rp) => rp.permission.name)
+        ) ?? [];
+      const role: string[] =
+        roles?.userRoles.flatMap((r) => {
+          return r.role.name;
+        }) ?? [];
+      return {
+        user: {
+          ...user,
+          roles: role,
+          permissions: permissionList,
+        },
+        session,
+      };
+    }),
+  ],
 });

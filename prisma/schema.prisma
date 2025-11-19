@@ -28,6 +28,7 @@ model User {
   email         String
   emailVerified Boolean   @default(false)
   image         String?
+  userRoles UserRole[] @relation("UserToUserRole")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
   sessions      Session[]
@@ -80,4 +81,66 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+}
+model Roles {
+  id          Int               @id @default(autoincrement())
+  name        String @unique
+
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+  menuRoles       MenuRoles[]
+  @@map("roles")
+}
+
+model Permissions {
+  id          Int               @id @default(autoincrement())
+  name        String @unique
+  module      String
+  description String
+  rolePermissions RolePermission[]
+  @@map("permission")
+}
+
+model RolePermission {
+  id           Int          @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+
+  role       Roles       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permissions @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permission")
+}
+
+model UserRole {
+  id      Int     @id @default(autoincrement())
+  userId  String
+  roleId  Int
+
+  user User @relation("UserToUserRole", fields: [userId], references: [id], onDelete: Cascade)
+  role Roles @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@map("user_role")
+}
+
+model Menu {
+  id    Int     @id @default(autoincrement())
+  name  String
+  path  String
+  menuRoles MenuRoles[]
+  @@map("menu")
+}
+
+model MenuRoles {
+  id      Int   @id @default(autoincrement())
+  menuId  Int
+  roleId  Int
+
+  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  role Roles @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([menuId, roleId])
+  @@map("menu_role")
 }
