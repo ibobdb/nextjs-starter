@@ -5,6 +5,8 @@ import {
   Users,
   Accessibility,
   BarChart,
+  Workflow,
+  Search,
 } from 'lucide-react';
 interface NavGroup {
   label: string;
@@ -36,20 +38,27 @@ export const items: NavGroup[] = [
         icon: Home,
         roles: ['super_admin', 'admin', 'manager'],
       },
-      {
-        title: 'Analytics',
-        url: '/dashboard/analytics',
-        icon: BarChart,
-        roles: ['super_admin', 'admin', 'manager'],
-      },
-      {
-        title: 'Activity Logs',
-        url: '/dashboard/logs',
-        icon: Inbox,
-        roles: ['super_admin', 'admin', 'manager'],
-      },
     ],
     roles: ['super_admin', 'admin', 'manager'],
+  },
+  {
+    label: 'Trendscout',
+    roles: ['super_admin'],
+    items: [
+      {
+        title: 'Discovery',
+        url: '/dashboard/trendscout/discovery',
+        icon: User2,
+        roles: ['super_admin', 'admin', 'manager'],
+      },
+      {
+        title: 'Topic & Trends',
+        url: '/dashboard/trendscout/topic-trends',
+        icon: User2,
+        roles: ['super_admin', 'admin', 'manager'],
+      },
+    
+    ],
   },
   {
     label: 'User & Access',

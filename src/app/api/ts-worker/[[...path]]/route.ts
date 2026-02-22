@@ -1,0 +1,55 @@
+import { NextRequest, NextResponse } from 'next/server';
+import tsWorkerAxios from '@/services/ts-worker/ts.worker.axios.config';
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ path?: string[] }> }) {
+  return handleRequest(request, await params);
+}
+
+export async function POST(request: NextRequest, { params }: { params: Promise<{ path?: string[] }> }) {
+  return handleRequest(request, await params);
+}
+
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ path?: string[] }> }) {
+  return handleRequest(request, await params);
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ path?: string[] }> }) {
+  return handleRequest(request, await params);
+}
+
+async function handleRequest(request: NextRequest, params: { path?: string[] }) {
+  const pathSegments = params.path || [];
+  const endpoint = `/${pathSegments.join('/')}`;
+  const searchParams = request.nextUrl.searchParams.toString();
+  const url = `${endpoint}${searchParams ? `?${searchParams}` : ''}`;
+
+  try {
+    const method = request.method.toLowerCase();
+    const headers: Record<string, string> = {};
+    
+    // Forward only safe headers if needed, but tsWorkerAxios already handles auth
+    
+    let body = undefined;
+    if (['post', 'put', 'patch'].includes(method)) {
+      body = await request.json().catch(() => ({}));
+    }
+
+    // Call the worker using our central axios config (which has the API key)
+    // IMPORTANT: tsWorkerAxios is already configured with the server-side TS_WORKER_URL and TS_WORKER_KEY
+    const response = await (tsWorkerAxios as any)[method](url, body);
+
+    return NextResponse.json(response);
+  } catch (error: any) {
+    console.error(`[TS-Worker Proxy Error] ${request.method} ${url}:`, error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        message: error.message || 'Error proxying to TS-Worker',
+        error: error.error || error.message,
+        status: error.status || 500
+      },
+      { status: error.status || 500 }
+    );
+  }
+}
