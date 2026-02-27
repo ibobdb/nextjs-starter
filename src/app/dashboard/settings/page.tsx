@@ -20,9 +20,8 @@ export default function SettingsPage() {
     setLoading(true);
     try {
       const res = await configApi.getConfig();
-      const result = res as any;
-      if (result.success && result.data) {
-        setConfig(result.data);
+      if (res.success && res.data) {
+        setConfig(res.data);
       }
     } catch (error) {
       console.error('Failed to fetch config:', error);
@@ -44,8 +43,7 @@ export default function SettingsPage() {
     setSaving(true);
     try {
       const res = await configApi.updateConfig(config);
-      const result = res as any;
-      if (result.success) {
+      if (res.success) {
         toast.success('Configuration updated successfully');
       }
     } catch (error) {
@@ -59,11 +57,11 @@ export default function SettingsPage() {
   const handleClearCache = async () => {
     try {
       const res = await configApi.clearCache();
-      const result = res as any;
-      if (result.success) {
+      if (res.success) {
         toast.success('System cache cleared');
       }
     } catch (error) {
+      console.error('Failed to clear cache:', error);
       toast.error('Failed to clear cache');
     }
   };
@@ -113,7 +111,7 @@ export default function SettingsPage() {
         <Info className="h-4 w-4" />
         <AlertTitle>Note</AlertTitle>
         <AlertDescription>
-           Be careful while editing these parameters as they directly affect the AI's clustering and discovery logic.
+           Be careful while editing these parameters as they directly affect the AI&apos;s clustering and discovery logic.
         </AlertDescription>
       </Alert>
 
@@ -176,7 +174,7 @@ export default function SettingsPage() {
                     />
                   </div>
                ))}
-               {Object.keys(config).filter(([key]) => key !== 'LOOKBACK_DAYS' && key !== 'MIN_SCORE').length === 0 && (
+               {Object.keys(config).filter((key) => key !== 'LOOKBACK_DAYS' && key !== 'MIN_SCORE').length === 0 && (
                   <div className="md:col-span-2 py-8 text-center text-muted-foreground italic border border-dashed rounded-lg bg-muted/5">
                     No additional parameters found.
                   </div>

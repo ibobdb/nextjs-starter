@@ -25,7 +25,6 @@ async function handleRequest(request: NextRequest, params: { path?: string[] }) 
 
   try {
     const method = request.method.toLowerCase();
-    const headers: Record<string, string> = {};
     
     // Forward only safe headers if needed, but tsWorkerAxios already handles auth
     
@@ -36,20 +35,22 @@ async function handleRequest(request: NextRequest, params: { path?: string[] }) 
 
     // Call the worker using our central axios config (which has the API key)
     // IMPORTANT: tsWorkerAxios is already configured with the server-side TS_WORKER_URL and TS_WORKER_KEY
-    const response = await (tsWorkerAxios as any)[method](url, body);
+    const axiosInstance = tsWorkerAxios as unknown as Record<string, (url: string, data?: unknown) => Promise<unknown>>;
+    const response = await axiosInstance[method](url, body);
 
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`[TS-Worker Proxy Error] ${request.method} ${url}:`, error);
     
+    const err = error as { message?: string; error?: string; status?: number };
     return NextResponse.json(
       {
         success: false,
-        message: error.message || 'Error proxying to TS-Worker',
-        error: error.error || error.message,
-        status: error.status || 500
+        message: err.message || 'Error proxying to TS-Worker',
+        error: err.error || err.message,
+        status: err.status || 500
       },
-      { status: error.status || 500 }
+      { status: err.status || 500 }
     );
   }
 }

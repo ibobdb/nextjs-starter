@@ -4,14 +4,14 @@ import { useEffect, useState, useCallback } from 'react';
 import { SummaryCards } from '@/components/dashboard/summary-cards';
 import { GrowthMetricsChart } from '@/components/dashboard/growth-metrics-chart';
 import { statsApi } from '@/services/ts-worker/api/stats';
-import { SummaryStats } from '@/services/ts-worker/types';
+import { SummaryStats, GrowthSummary } from '@/services/ts-worker/types';
 import { toast } from 'sonner';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function DashboardOverviewPage() {
   const [stats, setStats] = useState<SummaryStats | null>(null);
-  const [growthData, setGrowthData] = useState<any[]>([]);
+  const [growthData, setGrowthData] = useState<GrowthSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -25,15 +25,13 @@ export default function DashboardOverviewPage() {
         statsApi.getGrowthMetrics()
       ]);
 
-      const summary = summaryRes as any;
-      if (summary.success && summary.data) {
-        setStats(summary.data);
+      if (summaryRes.success && summaryRes.data) {
+        setStats(summaryRes.data);
       }
 
-      const growth = growthRes as any;
-      if (growth.success && growth.data) {
+      if (growthRes.success && growthRes.data) {
         // The API returns { summary: GrowthSummary[], recent: ... }
-        setGrowthData(growth.data.summary || []);
+        setGrowthData(growthRes.data.summary || []);
       }
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error);

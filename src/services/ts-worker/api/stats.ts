@@ -1,9 +1,18 @@
 import tsWorkerAxios from "../ts.worker.axios.config";
-import { SummaryStats, CategoryCount, KeywordTrend, GrowthMetricsData, PaginationParams, PaginatedResponse } from "../types";
+import {
+  SummaryStats,
+  CategoryCount,
+  IntentCount,
+  KeywordTrend,
+  SourcePerformance,
+  GrowthMetricsData,
+  PaginationParams,
+  PaginatedResponse,
+} from "../types";
 import { ApiResponse } from "@/types/response";
 
 export const statsApi = {
-  getGrowthMetrics: () => 
+  getGrowthMetrics: () =>
     tsWorkerAxios.get<ApiResponse<GrowthMetricsData>>('/api/stats/growth') as unknown as Promise<ApiResponse<GrowthMetricsData>>,
 
   getSummary: () =>
@@ -18,4 +27,10 @@ export const statsApi = {
       `/api/stats/keywords?page=${page}&limit=${limit}`
     ) as unknown as Promise<ApiResponse<PaginatedResponse<KeywordTrend>>>;
   },
+
+  getSourcesPerformance: () =>
+    tsWorkerAxios.get<ApiResponse<SourcePerformance[]>>('/api/stats/sources/performance') as unknown as Promise<ApiResponse<SourcePerformance[]>>,
+
+  getCategoriesList: () =>
+    tsWorkerAxios.get<ApiResponse<IntentCount[]>>('/api/stats/categories/list') as unknown as Promise<ApiResponse<IntentCount[]>>,
 };

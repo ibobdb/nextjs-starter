@@ -33,11 +33,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
-  const activeSegment = pathname
-    .split('/')
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('/');
+  const activeSegment = pathname;
 
   return (
     <Sidebar
@@ -83,12 +79,10 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {group.items.map((item) => {
-                    const segment = item.url
-                      .split('/')
-                      .filter(Boolean)
-                      .slice(0, 2)
-                      .join('/');
-                    const active = activeSegment === segment;
+                    // exact match for leaf pages; also match sub-routes (e.g. /dashboard/users/create still highlights Users)
+                    const active =
+                      activeSegment === item.url ||
+                      activeSegment.startsWith(item.url + '/');
 
                     return (
                       <SidebarMenuItem key={item.title}>

@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { statsApi } from "@/services/ts-worker/api/stats"
+import { KeywordTrend } from "@/services/ts-worker/types";
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Hash } from "lucide-react"
 
@@ -20,10 +21,11 @@ const LIMIT = 30
 const fetchKeywords = (page: number) =>
   statsApi.getKeywords({ page, limit: LIMIT }).then((res) => {
     if (res.success && res.data) {
-      const keywordsData = Array.isArray(res.data)
-        ? res.data
-        : (res.data as any).data;
-      const meta = (res.data as any).meta;
+      const data = res.data as unknown;
+      const keywordsData = Array.isArray(data)
+        ? data
+        : (data as { data: KeywordTrend[] }).data;
+      const meta = (data as { meta: { totalPages: number } }).meta;
       return {
         keywords: Array.isArray(keywordsData) ? keywordsData : [],
         totalPages: meta?.totalPages || 1,
@@ -105,7 +107,8 @@ export default function WorkerKeywords() {
         ) : keywords.length > 0 ? (
           <div className={`flex flex-wrap gap-2 items-center justify-center p-4 bg-muted/10 rounded-xl min-h-[150px] transition-opacity ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
             {keywords.map((kw, index) => {
-              const displayScore = kw.popularityScore ?? kw.score ?? (kw as any).volume ?? (kw as any).count ?? 0;
+              const kwAny = kw as unknown as Record<string, number>;
+              const displayScore = kw.popularityScore ?? kw.score ?? kwAny.volume ?? kwAny.count ?? 0;
               return (
                 <Badge
                   key={`${kw.keyword}-${index}`}
