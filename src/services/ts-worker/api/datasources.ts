@@ -19,12 +19,12 @@ export const dataSourcesApi = {
   createDataSource: (data: Partial<DataSource>) =>
     tsWorkerAxios.post<ApiResponse<DataSource>>('/api/datasources', data) as unknown as Promise<ApiResponse<DataSource>>,
 
-  updateDataSource: (id: number, data: Partial<DataSource>) =>
+  updateDataSource: (id: string, data: Partial<DataSource>) =>
     tsWorkerAxios.patch<ApiResponse<DataSource>>(`/api/datasources/${id}`, data) as unknown as Promise<ApiResponse<DataSource>>,
 
-  deleteDataSource: (id: number) =>
+  deleteDataSource: (id: string) =>
     tsWorkerAxios.delete<ApiResponse>(`/api/datasources/${id}`) as unknown as Promise<ApiResponse>,
 
-  syncDataSource: (id: number) =>
+  syncDataSource: (id: string) =>
     tsWorkerAxios.post<ApiResponse>(`/api/datasources/${id}/sync`) as unknown as Promise<ApiResponse>,
 };

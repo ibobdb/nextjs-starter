@@ -36,11 +36,12 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-type StatusFilter = "generated" | "approved" | "rejected" | "ignored";
+type StatusFilter = "generated" | "approved" | "drafting" | "rejected" | "ignored";
 
 const STATUS_BADGE: Record<StatusFilter, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   generated: { label: "Pending",  variant: "secondary" },
   approved:  { label: "Approved", variant: "default" },
+  drafting:  { label: "Drafting", variant: "secondary" },
   rejected:  { label: "Rejected", variant: "destructive" },
   ignored:   { label: "Ignored",  variant: "outline" },
 };
@@ -86,7 +87,7 @@ export default function CandidateWorkbench() {
   const { data, isLoading, isValidating, mutate } = useSWR(
     swrKey,
     () => fetchCandidates({ status, page, search, intent: intent === "all" ? undefined : intent }),
-    { revalidateOnFocus: false, keepPreviousData: true }
+    { revalidateOnFocus: true, keepPreviousData: true, refreshInterval: status === 'approved' ? 30_000 : 0 }
   );
 
   const { data: intents = [] } = useSWR("ts-worker/stats/categories/list", fetchIntents);
@@ -178,7 +179,7 @@ export default function CandidateWorkbench() {
             </div>
             {/* Status Tabs */}
             <div className="flex gap-1 p-1 bg-muted rounded-lg self-start">
-              {(["generated", "approved", "rejected", "ignored"] as StatusFilter[]).map((s) => (
+              {(["generated", "approved", "drafting", "rejected", "ignored"] as StatusFilter[]).map((s) => (
                 <button
                   key={s}
                   onClick={() => handleStatusChange(s)}

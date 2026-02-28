@@ -61,16 +61,42 @@ export interface TopicCandidate {
   priorityScore?: number;
   difficultyScore?: number | null;
   searchVolume?: number;
-  aiScore?: number;
+  // -- Phase 1: AI Evaluation (Triage) --
+  aiSummary: string | null;  // 1-sentence explanation of WHY this topic is trending
+  aiReason: string | null;   // Rejection reason from AI (e.g., spam)
+  aiScore: number | null;    // Content potential score (0-100)
+  // -- Phase 2: AI Editorial Strategy --
+  aiBrief: string | null;     // (Markdown) Editorial strategy & article outline
+  
+  tier?: 'viral' | 'evergreen' | 'niche';
+  evalMeta?: {
+    prompt_version?: string;
+    logic_flags?: string[];
+  };
+
   // Status
-  status: 'generated' | 'approved' | 'rejected' | 'ignored' | 'drafting';
-  // AI content
-  aiSummary?: string;
-  aiBrief?: string | null;
-  aiReason?: string;
+  status: 'generated' | 'approved' | 'rejected' | 'drafting' | 'ignored';
   // Timestamps
   createdAt: string;
-  updatedAt?: string;
+  updatedAt: string;
+}
+
+export interface ArticleDraft {
+  id: string; // Original type is BigInt
+  candidateId: string; // Relationship to TopicCandidate
+  
+  content: string; // (Markdown) The complete long-form article
+  
+  // -- Phase 3: SEO Audit --
+  metaTitle: string | null;       // SEO Title (< 60 chars)
+  metaDescription: string | null; // SEO Desc (< 160 chars)
+  slug: string | null;            // URL-friendly slug
+  seoScore: number | null;        // Keyword density & readability score (0-100)
+  
+  status: "draft" | "sent_to_cms" | "deleted";
+  
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UpdateCandidatePayload {
@@ -93,6 +119,8 @@ export interface RawItem {
   url?: string;
   source?: string;
   publishDate?: string;
+  clusterId?: string;
+  sourceType?: string;
   createdAt: string;
 }
 
@@ -192,7 +220,7 @@ export interface SourcePerformance {
 }
 
 export interface DataSource {
-  id: number;
+  id: string; // BigInt serialized as string
   name: string;
   type: string;
   baseUrl?: string;
@@ -263,4 +291,13 @@ export interface GrowthSummary {
 
 export interface GrowthMetricsData {
   summary: GrowthSummary[];
+}
+
+export interface ModelsResponse {
+  availableProviders: string[];
+  recommendedModels: Record<string, string[]>;
+  current: {
+    filter: { provider: string; model: string };
+    enrich: { provider: string; model: string };
+  };
 }

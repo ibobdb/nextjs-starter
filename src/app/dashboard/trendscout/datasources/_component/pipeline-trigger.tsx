@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { jobsApi } from "@/services/ts-worker/api/jobs"
 import { Button } from "@/components/ui/button"
-import { Zap, Loader2, PlayCircle, Info } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Zap, Loader2, PlayCircle, Info, CheckCircle2, XCircle } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import {
@@ -13,25 +14,113 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+type PollStatus = 'idle' | 'running' | 'SUCCESS' | 'FAILED'
+
 export default function PipelineTrigger() {
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRunning, setIsRunning] = useState(false)
+  const [pollStatus, setPollStatus] = useState<PollStatus>('idle')
+  const [jobId, setJobId] = useState<string | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Clean up polling on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [])
+
+  // Start polling when jobId is set
+  useEffect(() => {
+    if (!jobId) return
+
+    setPollStatus('running')
+    intervalRef.current = setInterval(async () => {
+      try {
+        const res = await jobsApi.getJobStatus(jobId)
+        if (!res.success || !res.data) return
+
+        // The status from the API uses uppercase SUCCESS/FAILED
+        const status = (res.data as unknown as { status: string }).status
+        if (status === 'SUCCESS' || status === 'FAILED') {
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          intervalRef.current = null
+          setPollStatus(status as 'SUCCESS' | 'FAILED')
+          setJobId(null)
+          setIsRunning(false)
+
+          if (status === 'SUCCESS') {
+            toast.success("Pipeline completed successfully!")
+          } else {
+            toast.error("Pipeline failed. Check job logs for details.")
+          }
+        }
+      } catch {
+        // silently ignore transient polling errors
+      }
+    }, 3000)
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [jobId])
 
   const handleRunFull = async () => {
-    setIsRunning(true);
+    setIsRunning(true)
+    setPollStatus('idle')
+    setJobId(null)
+
     try {
-      const res = await jobsApi.runFullPipeline();
+      const res = await jobsApi.runFullPipeline()
       if (res.success) {
-        toast.success("Full system pipeline initiated successfully!");
+        const data = res.data as unknown as { jobId?: string }
+        const id = data?.jobId
+        if (id) {
+          setJobId(id)
+          toast.info(`Pipeline started — monitoring job #${id}…`)
+        } else {
+          // API didn't return a jobId — still show success
+          toast.success("Pipeline initiated successfully!")
+          setIsRunning(false)
+          setPollStatus('SUCCESS')
+        }
       } else {
-        toast.error(`Failed to start pipeline: ${res.message}`);
+        toast.error(`Failed to start pipeline: ${res.message}`)
+        setIsRunning(false)
       }
     } catch (error) {
-      toast.error("An error occurred while starting the pipeline.");
-      console.error(error);
-    } finally {
-      setIsRunning(false);
+      toast.error("An error occurred while starting the pipeline.")
+      console.error(error)
+      setIsRunning(false)
     }
-  };
+  }
+
+  const statusBadge = () => {
+    if (pollStatus === 'running') {
+      return (
+        <Badge variant="secondary" className="gap-1 text-[10px] animate-pulse">
+          <Loader2 className="h-2.5 w-2.5 animate-spin" />
+          Running…
+        </Badge>
+      )
+    }
+    if (pollStatus === 'SUCCESS') {
+      return (
+        <Badge className="gap-1 text-[10px] bg-green-500/10 text-green-600 border-green-500/30">
+          <CheckCircle2 className="h-2.5 w-2.5" />
+          Completed
+        </Badge>
+      )
+    }
+    if (pollStatus === 'FAILED') {
+      return (
+        <Badge variant="destructive" className="gap-1 text-[10px] bg-red-500/10 text-red-600 border-red-500/30">
+          <XCircle className="h-2.5 w-2.5" />
+          Failed
+        </Badge>
+      )
+    }
+    return null
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -43,12 +132,13 @@ export default function PipelineTrigger() {
           )}>
             <Zap className={cn("h-5 w-5", isRunning ? "text-primary fill-primary/20" : "text-primary")} />
           </div>
-          <div className="flex flex-col">
-            <h3 className="text-sm font-bold leading-none mb-1">System Pipeline</h3>
+          <div className="flex flex-col gap-1">
+            <h3 className="text-sm font-bold leading-none">System Pipeline</h3>
             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
               Ingest → NLP → Stats → Topic
             </div>
+            {statusBadge()}
           </div>
         </div>
 

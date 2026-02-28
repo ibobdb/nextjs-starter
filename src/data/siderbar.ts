@@ -8,6 +8,7 @@ import {
   Cpu,
   Database,
   Settings,
+  Newspaper,
 } from 'lucide-react';
 
 interface NavGroup {
@@ -69,6 +70,12 @@ export const items: NavGroup[] = [
         title: 'Datasources',
         url: '/dashboard/trendscout/datasources',
         icon: Database,
+        roles: ['super_admin', 'admin', 'manager'],
+      },
+      {
+        title: 'Content',
+        url: '/dashboard/trendscout/content',
+        icon: Newspaper,
         roles: ['super_admin', 'admin', 'manager'],
       },
       {

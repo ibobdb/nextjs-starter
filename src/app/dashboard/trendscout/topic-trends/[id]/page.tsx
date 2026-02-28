@@ -27,6 +27,9 @@ import {
   ExternalLink,
   Edit2,
   ListFilter,
+  Newspaper,
+  GitFork,
+  Copy,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -38,6 +41,13 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 // Fetch single candidate ‑ falls back to scanning the list if /candidates/:id not yet cached
 const fetchCandidate = async (id: string): Promise<TopicCandidate> => {
@@ -48,6 +58,14 @@ const fetchCandidate = async (id: string): Promise<TopicCandidate> => {
 
 const fetchCluster = (id: string) => topicsApi.getCandidateCluster(id).then(res => res.data ?? []);
 const fetchRawItems = (id: string) => topicsApi.getCandidateRawItems(id).then(res => res.data ?? []);
+
+// Fetch sibling variants (same cluster, different id)
+const fetchVariants = (clusterId: string, currentId: string) =>
+  topicsApi.getCandidates({ status: 'generated', limit: 50 }).then(res => {
+    const r = res as unknown as { success: boolean; data: TopicCandidate[] };
+    if (!r.success) return [];
+    return r.data.filter(c => c.clusterId === clusterId && c.id !== currentId);
+  });
 
 function StatCard({ icon: Icon, label, value, color = '', onEdit }: {
   icon: React.ElementType; label: string; value: string | number | null | undefined; color?: string; onEdit?: () => void
@@ -93,14 +111,25 @@ const STATUS_MAP = {
   drafting:  { label: 'Drafting', variant: 'secondary'  as const },
 }
 
+const VARIANT_INTENTS = [
+  { value: 'tutorial',        label: 'Tutorial — Step-by-step guide' },
+  { value: 'comparison',      label: 'Comparison — A vs B style' },
+  { value: 'news',            label: 'News — Announcement angle' },
+  { value: 'troubleshooting', label: 'Troubleshooting — How to fix' },
+  { value: 'general',         label: 'General — Overview & analysis' },
+]
+
 export default function CandidateDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
-  const [actionLoading, setActionLoading] = useState<'approve' | 'reject' | 'ignore' | 'update' | null>(null)
+  const [actionLoading, setActionLoading] = useState<'approve' | 'reject' | 'ignore' | 'update' | 'generate' | 'brief' | 'variant' | null>(null)
   const [editData, setEditData] = useState<{ title: string; priorityScore: number } | null>(null)
+  const [showVariantDialog, setShowVariantDialog] = useState(false)
+  const [showAuditLogDialog, setShowAuditLogDialog] = useState(false)
+  const [selectedIntent, setSelectedIntent] = useState<string>('')
 
   const { data: candidate, isLoading, error, mutate } = useSWR(
-    `ts-worker/topics/candidates/${id}`,
+    id && id !== 'undefined' ? `ts-worker/topics/candidates/${id}` : null,
     () => fetchCandidate(id),
     { revalidateOnFocus: false }
   )
@@ -115,6 +144,11 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
     () => fetchRawItems(id)
   )
 
+  const { data: variants = [] } = useSWR(
+    candidate?.clusterId ? `ts-worker/topics/variants/${candidate.clusterId}` : null,
+    () => fetchVariants(candidate!.clusterId!, id)
+  )
+
   const handleAction = async (action: 'approve' | 'reject' | 'ignore') => {
     if (!candidate) return
     setActionLoading(action)
@@ -125,19 +159,23 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
         ? await topicsApi.rejectCandidate(candidate.id)
         : await topicsApi.ignoreCandidate(candidate.id)
 
-      if (res.success) {
-        toast.success(
-          action === 'approve'
-            ? 'Brief creation triggered!'
-            : action === 'reject'
-            ? 'Candidate marked as rejected.'
-            : 'Candidate marked as ignored.'
-        )
-        mutate()
-        if (action !== 'approve' || !candidate.aiBrief) {
-          setTimeout(() => router.push('/dashboard/trendscout/topic-trends'), 1500)
-        }
-      } else {
+        if (res.success) {
+          if (action === 'approve') {
+            toast.promise(mutate(), {
+              loading: 'Updating candidate and generating brief...',
+              success: 'Candidate approved! Brief is being generated.',
+              error: 'Failed to refresh candidate data.',
+            });
+          } else {
+            toast.success(
+              action === 'reject'
+                ? 'Candidate marked as rejected.'
+                : 'Candidate marked as ignored.'
+            );
+            mutate();
+            setTimeout(() => router.push('/dashboard/trendscout/topic-trends'), 1500);
+          }
+        } else {
         toast.error(`Failed: ${res.message}`)
       }
     } catch {
@@ -158,6 +196,71 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
         setEditData(null)
       } else {
         toast.error(`Update failed: ${res.message}`)
+      }
+    } catch {
+      toast.error('Something went wrong.')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleGenerateContent = async () => {
+    if (!candidate) return
+    setActionLoading('generate')
+    try {
+      const res = await topicsApi.generateContent(candidate.id)
+      if (res.success && res.data) {
+        toast.success('Draft generated successfully!')
+        router.push(`/dashboard/trendscout/content/${res.data.id}`)
+      } else {
+        toast.error(`Generation failed: ${res.message}`)
+      }
+    } catch {
+      toast.error('Something went wrong during generation.')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleGenerateBrief = async () => {
+    if (!candidate) return
+    setActionLoading('brief')
+    try {
+      const res = await topicsApi.generateBrief(candidate.id)
+      if (res.success) {
+        toast.success('AI Brief generated successfully!')
+        mutate()
+      } else {
+        toast.error(`Brief generation failed: ${res.message}`)
+      }
+    } catch {
+      toast.error('Something went wrong during brief generation.')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleCreateVariant = async () => {
+    if (!candidate || !selectedIntent) return
+    setActionLoading('variant')
+    try {
+      const res = await topicsApi.createVariant(candidate.id, selectedIntent)
+      if (res.success && res.data) {
+        toast.success(`Variant created with intent: ${selectedIntent}`)
+        setShowVariantDialog(false)
+        setSelectedIntent('')
+        
+        // Safer ID extraction in case of nesting or different naming
+        const newId = res.data?.id || (res.data as any)?.candidate?.id || (res.data as any)?._id
+        
+        if (newId) {
+          router.push(`/dashboard/trendscout/topic-trends/${newId}`)
+        } else {
+          toast.info('Variant created. Refreshing list.')
+          mutate()
+        }
+      } else {
+        toast.error(`Variant creation failed: ${res.message}`)
       }
     } catch {
       toast.error('Something went wrong.')
@@ -207,8 +310,25 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <Badge variant={status.variant} className="capitalize">{status.label || 'Unknown'}</Badge>
+            {candidate.tier && (() => {
+               const tierStyles: Record<string, string> = {
+                 viral:     'text-red-600 border-red-500/40 bg-red-500/5',
+                 evergreen: 'text-green-600 border-green-500/40 bg-green-500/5',
+                 niche:     'text-gray-500 border-gray-400/40 bg-gray-400/5',
+               }
+               return (
+                 <Badge variant="outline" className={`capitalize ${tierStyles[candidate.tier!] ?? ''}`}>
+                   {candidate.tier}
+                 </Badge>
+               )
+            })()}
             {candidate.intent && (
               <Badge variant="outline" className="text-xs capitalize">{candidate.intent}</Badge>
+            )}
+            {candidate.evalMeta && (
+               <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-muted-foreground cursor-pointer hover:bg-muted" onClick={() => setShowAuditLogDialog(true)}>
+                 <Info className="h-3 w-3 mr-1" /> AI Audit Log
+               </Button>
             )}
             {candidate.status !== 'ignored' && (
                <Button 
@@ -237,45 +357,95 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
         </div>
       </div>
 
-      {/* Action Buttons — only for approved (needs Create Brief) */}
-      {candidate.status === 'approved' && (
-        <Card className={`border ${hasBrief ? 'border-green-500/30 bg-green-500/5' : 'border-primary/30 bg-primary/5'}`}>
+      {/* Action Card — only for generated or approved */}
+      {(candidate.status === 'generated' || candidate.status === 'approved') && (
+        <Card className={`border ${
+          candidate.status === 'approved'
+            ? 'border-green-500/30 bg-green-500/5'
+            : 'border-primary/30 bg-primary/5'
+        }`}>
           <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-4">
             <div className="flex items-start gap-2">
-              {hasBrief
+              {candidate.status === 'approved'
                 ? <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                 : <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
               }
               <p className="text-sm">
-                {hasBrief
-                  ? 'AI Brief has been generated for this candidate.'
-                  : 'This candidate is approved but needs a manual action to create its AI Brief.'}
+                {candidate.status === 'approved'
+                  ? 'Status: Approved. Ready to generate.'
+                  : 'Review this candidate and approve or reject it.'}
               </p>
             </div>
-            <div className="flex gap-2 shrink-0">
-              {!hasBrief && (
+            <div className="flex gap-2 flex-wrap shrink-0">
+              {/* Generate Article: only when approved + has brief */}
+              {candidate.status === 'approved' && hasBrief && (
                 <Button
                   className="gap-2 bg-primary hover:bg-primary/90 shadow-md shadow-primary/20 cursor-pointer"
+                  disabled={!!actionLoading}
+                  onClick={handleGenerateContent}
+                >
+                  {actionLoading === 'generate'
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Newspaper className="h-4 w-4" />}
+                  {actionLoading === 'generate' ? 'Generating…' : 'Generate Article'}
+                </Button>
+              )}
+
+              {/* Create Brief: when approved */}
+              {candidate.status === 'approved' && (
+                <Button
+                  className="gap-2 bg-primary hover:bg-primary/90 shadow-md shadow-primary/20 cursor-pointer"
+                  disabled={!!actionLoading}
+                  onClick={handleGenerateBrief}
+                >
+                  {actionLoading === 'brief'
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Sparkles className="h-4 w-4" />}
+                  {actionLoading === 'brief' ? 'Creating…' : (hasBrief ? 'Regenerate Brief' : 'Create Brief')}
+                </Button>
+              )}
+
+              {/* Create Variant: when approved */}
+              {candidate.status === 'approved' && (
+                <Button
+                  variant="outline"
+                  className="gap-2 cursor-pointer"
+                  disabled={!!actionLoading}
+                  onClick={() => setShowVariantDialog(true)}
+                >
+                  <GitFork className="h-4 w-4" />
+                  Create Variant
+                </Button>
+              )}
+
+              {/* Approve: when generated */}
+              {candidate.status === 'generated' && (
+                <Button
+                  className="gap-2 cursor-pointer"
                   disabled={!!actionLoading}
                   onClick={() => handleAction('approve')}
                 >
                   {actionLoading === 'approve'
                     ? <Loader2 className="h-4 w-4 animate-spin" />
-                    : <Sparkles className="h-4 w-4" />}
-                  {actionLoading === 'approve' ? 'Creating…' : 'Create Brief'}
+                    : <CheckCircle2 className="h-4 w-4" />}
+                  {actionLoading === 'approve' ? 'Approving…' : 'Approve'}
                 </Button>
               )}
-              <Button
-                variant="destructive"
-                className="gap-2"
-                disabled={!!actionLoading}
-                onClick={() => handleAction('reject')}
-              >
-                {actionLoading === 'reject'
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : <XCircle className="h-4 w-4" />}
-                {actionLoading === 'reject' ? 'Rejecting…' : 'Reject'}
-              </Button>
+
+              {/* Reject button */}
+              {(candidate.status === 'generated' || candidate.status === 'approved') && (
+                <Button
+                  variant="destructive"
+                  className="gap-2"
+                  disabled={!!actionLoading}
+                  onClick={() => handleAction('reject')}
+                >
+                  {actionLoading === 'reject'
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <XCircle className="h-4 w-4" />}
+                  {actionLoading === 'reject' ? 'Rejecting…' : 'Reject'}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -292,7 +462,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
         <StatCard icon={Search}      label="Search Volume"  value={candidate.searchVolume}   color="text-green-500" />
       </div>
 
-      {/* Context Information (New) */}
+      {/* Context Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Cluster Keywords */}
         <Card className="flex flex-col">
@@ -361,6 +531,36 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
         </Card>
       </div>
 
+      {/* Variants (siblings in same cluster) */}
+      {variants.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2 border-b">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <GitFork className="h-3.5 w-3.5" /> Cluster Variants ({variants.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="space-y-2">
+              {variants.map(v => (
+                <div key={v.id} className="flex items-center justify-between p-2 rounded-lg border bg-muted/10 hover:bg-muted/20 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{v.title}</p>
+                    <p className="text-[10px] text-muted-foreground capitalize">{v.intent || 'general'}</p>
+                  </div>
+                  <Button
+                    variant="ghost" size="sm"
+                    className="h-6 px-2 text-[10px] gap-1"
+                    onClick={() => router.push(`/dashboard/trendscout/topic-trends/${v.id}`)}
+                  >
+                    <ExternalLink className="h-3 w-3" /> View
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Keywords (Individual) */}
       {candidate.keywords?.length > 0 && (
         <Card>
@@ -391,7 +591,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
           {candidate.aiSummary && (candidate.aiReason || hasBrief) && <Separator />}
 
           {candidate.aiReason && (
-            <SectionBlock icon={Info} title="AI Reason">
+            <SectionBlock icon={Info} title="Target Audience">
               <p className="text-sm leading-relaxed text-foreground/80">{candidate.aiReason}</p>
             </SectionBlock>
           )}
@@ -450,6 +650,84 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
               {actionLoading === 'update' ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Save Changes
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Variant Dialog */}
+      <Dialog open={showVariantDialog} onOpenChange={(open) => { if (!open) { setShowVariantDialog(false); setSelectedIntent('') } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GitFork className="h-4 w-4 text-primary" /> Create Variant
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Generate a new candidate from the same cluster with a different content angle.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="intent">Content Intent</Label>
+              <Select value={selectedIntent} onValueChange={setSelectedIntent}>
+                <SelectTrigger id="intent" className="w-full">
+                  <SelectValue placeholder="Choose an intent…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {VARIANT_INTENTS.map(i => (
+                    <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowVariantDialog(false); setSelectedIntent('') }}>Cancel</Button>
+            <Button
+              onClick={handleCreateVariant}
+              disabled={!selectedIntent || actionLoading === 'variant'}
+              className="gap-2"
+            >
+              {actionLoading === 'variant' ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitFork className="h-4 w-4" />}
+              {actionLoading === 'variant' ? 'Creating…' : 'Create Variant'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Audit Log Dialog */}
+      <Dialog open={showAuditLogDialog} onOpenChange={setShowAuditLogDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+             <DialogTitle className="flex items-center gap-2">
+               <BrainCircuit className="h-4 w-4 text-primary" /> AI Audit Log
+             </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+             {candidate.evalMeta ? (
+               <div className="space-y-3">
+                 <div>
+                   <span className="text-xs font-bold uppercase text-muted-foreground block mb-1">Prompt Version</span>
+                   <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">{candidate.evalMeta.prompt_version || 'N/A'}</code>
+                 </div>
+                 <div>
+                   <span className="text-xs font-bold uppercase text-muted-foreground block mb-1">Logic Flags Triggered</span>
+                   {candidate.evalMeta.logic_flags && candidate.evalMeta.logic_flags.length > 0 ? (
+                     <div className="flex flex-wrap gap-1">
+                       {candidate.evalMeta.logic_flags.map((flag: string, idx: number) => (
+                         <Badge key={idx} variant="secondary" className="text-[10px] font-mono">{flag}</Badge>
+                       ))}
+                     </div>
+                   ) : (
+                     <p className="text-xs text-muted-foreground italic">No logic flags were thrown.</p>
+                   )}
+                 </div>
+               </div>
+             ) : (
+                <p className="text-sm text-muted-foreground">No audit metadata available.</p>
+             )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowAuditLogDialog(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

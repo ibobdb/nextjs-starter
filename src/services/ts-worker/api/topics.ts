@@ -11,6 +11,7 @@ import {
   PaginationParams,
   PaginatedResponse,
   ClusteringProcess,
+  ArticleDraft,
 } from "../types";
 import { ApiResponse } from "@/types/response";
 
@@ -77,6 +78,17 @@ export const topicsApi = {
 
   bulkReject: (ids: string[]) =>
     tsWorkerAxios.post<ApiResponse>('/api/topics/candidates/bulk-reject', { ids }) as unknown as Promise<ApiResponse>,
+
+  // ── Content Generation ────────────────────────────────────────────────────────
+
+  generateBrief: (id: string) =>
+    tsWorkerAxios.post<ApiResponse<TopicCandidate>>(`/api/topics/candidates/${id}/generate-brief`) as unknown as Promise<ApiResponse<TopicCandidate>>,
+
+  generateContent: (id: string) =>
+    tsWorkerAxios.post<ApiResponse<ArticleDraft>>(`/api/topics/candidates/${id}/generate-content`) as unknown as Promise<ApiResponse<ArticleDraft>>,
+
+  createVariant: (id: string, intent: string) =>
+    tsWorkerAxios.post<ApiResponse<TopicCandidate>>(`/api/topics/candidates/${id}/variants`, { intent }) as unknown as Promise<ApiResponse<TopicCandidate>>,
 
   // ── Evaluation ──────────────────────────────────────────────────────────────
 
