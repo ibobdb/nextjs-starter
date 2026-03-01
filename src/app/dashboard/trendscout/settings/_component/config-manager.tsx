@@ -44,7 +44,6 @@ import {
 } from "@/components/ui/select"
 import { configApi } from "@/services/ts-worker/api/config"
 import { toast } from "sonner"
-import { SystemConfig } from "@/services/ts-worker/types"
 import { DataLoader } from "@/components/ui/data-loader"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Label } from "@/components/ui/label"
@@ -142,26 +141,27 @@ export default function ConfigManager() {
         setConnStatus('fail')
         setConnTested(false)
         
-        // Extract error message for the Alert box, but keep toast concise
         let errMsg = res.message || "Connection test failed";
         if (res.error) {
           if (typeof res.error === 'string') errMsg = res.error;
-          else if (typeof res.error === 'object' && 'message' in (res.error as any)) {
-            errMsg = (res.error as any).message;
+          else if (typeof res.error === 'object' && res.error !== null && 'message' in res.error) {
+            errMsg = (res.error as { message: string }).message;
           }
         }
         setConnError(errMsg);
         toast.error("Connection test failed");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setConnStatus('fail')
       setConnTested(false)
       
       let errMsg = "Connection test failed";
-      if (error && typeof error === 'object') {
-        errMsg = error.message || error.error || "Connection test failed";
-        if (error.error && typeof error.error === 'object' && 'message' in error.error) {
-          errMsg = error.error.message;
+      if (error && typeof error === 'object' && 'message' in error) {
+        errMsg = (error as { message?: string; error?: string | { message: string } }).message
+          || "Connection test failed";
+        const innerErr = (error as { error?: string | { message: string } }).error;
+        if (innerErr && typeof innerErr === 'object' && 'message' in innerErr) {
+          errMsg = (innerErr as { message: string }).message;
         }
       }
       

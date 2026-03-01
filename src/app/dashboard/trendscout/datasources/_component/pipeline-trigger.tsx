@@ -33,8 +33,10 @@ export default function PipelineTrigger() {
   useEffect(() => {
     if (!jobId) return
 
-    setPollStatus('running')
+    // Use setTimeout(0) to defer setState call out of the synchronous effect body
+    const statusTimer = setTimeout(() => setPollStatus('running'), 0)
     intervalRef.current = setInterval(async () => {
+
       try {
         const res = await jobsApi.getJobStatus(jobId)
         if (!res.success || !res.data) return
@@ -60,6 +62,7 @@ export default function PipelineTrigger() {
     }, 3000)
 
     return () => {
+      clearTimeout(statusTimer)
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
   }, [jobId])

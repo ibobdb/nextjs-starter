@@ -29,7 +29,6 @@ import {
   ListFilter,
   Newspaper,
   GitFork,
-  Copy,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -250,8 +249,9 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
         setShowVariantDialog(false)
         setSelectedIntent('')
         
-        // Safer ID extraction in case of nesting or different naming
-        const newId = res.data?.id || (res.data as any)?.candidate?.id || (res.data as any)?._id
+        const newId = res.data?.id
+          || (res.data as { candidate?: { id: string } })?.candidate?.id
+          || (res.data as { _id?: string })?._id
         
         if (newId) {
           router.push(`/dashboard/trendscout/topic-trends/${newId}`)

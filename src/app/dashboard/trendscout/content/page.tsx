@@ -32,13 +32,13 @@ import { toast } from "sonner"
 
 const fetchDrafts = (page: number, limit: number, status: string): Promise<{ items: ArticleDraft[], totalPages: number, total: number }> =>
   draftsApi.getDrafts({ page, limit, status }).then(res => {
-    // Backend API wraps pagination as data: { items: [], metadata: {} }
-    const payload = res.data as any;
+    type DraftsPayload = { items?: ArticleDraft[]; metadata?: { totalPages?: number; total?: number } };
+    const payload = res.data as DraftsPayload;
     
     // Extract array from payload.items
-    const items = payload?.items && Array.isArray(payload.items) 
-      ? payload.items 
-      : (Array.isArray(payload) ? payload : []);
+    const items = Array.isArray(payload?.items)
+      ? payload.items
+      : (Array.isArray(res.data) ? (res.data as ArticleDraft[]) : []);
       
     // Extract metadata
     const meta = payload?.metadata || res.meta;
@@ -103,7 +103,7 @@ export default function ContentLibraryPage() {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <Tabs value={status} onValueChange={(v: string) => { setStatus(v as any); setPage(1); }} className="w-[400px]">
+          <Tabs value={status} onValueChange={(v: string) => { setStatus(v as 'draft' | 'sent_to_cms'); setPage(1); }} className="w-[400px]">
             <TabsList>
               <TabsTrigger value="draft" className="gap-2"><FileText className="h-4 w-4" /> Drafts</TabsTrigger>
               <TabsTrigger value="sent_to_cms" className="gap-2"><ExternalLink className="h-4 w-4" /> Published</TabsTrigger>
