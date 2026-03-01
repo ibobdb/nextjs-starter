@@ -1,10 +1,124 @@
+"use client";
+
+import { useState } from "react";
+import { PageHeader } from "@/components/common/page-header";
+import { AppTable } from "@/components/common/app-table";
+import { DataLoader } from "@/components/common/data-loader";
+import { useData } from "@/hooks/use-data";
+import { usersApi } from "@/services/users/api";
+import type { User } from "@/services/users/api";
+import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Shield } from "lucide-react";
+import { UserRolesDialog } from "./_component/user-roles-dialog";
+import { Badge } from "@/components/ui/badge";
+
 export default function UsersPage() {
+  const { data: users, isLoading, error, mutate } = useData<User[]>("users", () =>
+    usersApi.getUsers()
+  );
+
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Definisi Kolom Tabel
+  const columns: ColumnDef<User>[] = [
+    {
+      accessorKey: "name",
+      header: "Nama Lengkap",
+      cell: ({ row }) => (
+        <div className="font-medium text-foreground">
+          {row.original.name}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => (
+        <div className="text-muted-foreground">
+          {row.original.email}
+        </div>
+      ),
+    },
+    {
+      id: "roles",
+      header: "Roles",
+      cell: ({ row }) => {
+        const roles = row.original.userRoles;
+        if (roles.length === 0) {
+          return <span className="text-xs text-muted-foreground">No roles</span>;
+        }
+        return (
+          <div className="flex flex-wrap gap-1">
+            {roles.map((r) => (
+              <Badge key={r.roleId} variant={r.role.name === 'super_admin' ? 'default' : 'secondary'} className="text-xs font-normal">
+                {r.role.name}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Tanggal Bergabung",
+      cell: ({ row }) => {
+        const date = new Date(row.original.createdAt);
+        return format(date, "dd MMM yyyy");
+      },
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSelectedUser(row.original);
+              setDialogOpen(true);
+            }}
+          >
+            <Shield className="mr-2 h-4 w-4" />
+            Manage Roles
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] border-2 border-dashed border-border rounded-xl bg-muted/5">
-      <h1 className="text-2xl font-bold">User Management</h1>
-      <p className="text-muted-foreground mt-2 text-center max-w-md">
-        User accounts, roles, and administrative controls will be managed from this interface in a future update.
-      </p>
+    <div className="space-y-6">
+      <PageHeader
+        title="User Management"
+        description="Kelola akun pengguna, berikan atau cabut hak akses role mereka dalam sistem."
+      />
+
+      <DataLoader
+        isLoading={isLoading}
+        error={error}
+        onRetry={mutate}
+        isEmpty={users?.length === 0}
+        skeletonVariant="table"
+        skeletonProps={{ rows: 5 }}
+      >
+        <AppTable
+          data={users || []}
+          columns={columns}
+        />
+      </DataLoader>
+
+      <UserRolesDialog
+        user={selectedUser}
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setSelectedUser(null);
+        }}
+      />
     </div>
   );
 }

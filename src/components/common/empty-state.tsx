@@ -18,8 +18,8 @@ import type { ReactNode } from 'react';
  */
 
 interface EmptyStateProps {
-  /** Icon lucide-react (default: PackageOpen) */
-  icon?: LucideIcon;
+  /** Icon JSX / ReactNode (misal: <PackageOpen className="h-7 w-7 text-muted-foreground/60" />) */
+  icon?: ReactNode;
   /** Judul pesan kosong */
   title: string;
   /** Deskripsi tambahan */
@@ -30,7 +30,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  icon: Icon = PackageOpen,
+  icon = <PackageOpen className="h-7 w-7 text-muted-foreground/60" />,
   title,
   description,
   action,
@@ -44,7 +44,7 @@ export function EmptyState({
       )}
     >
       <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted/60">
-        <Icon className="h-7 w-7 text-muted-foreground/60" />
+        {icon}
       </div>
       <p className="text-sm font-medium text-foreground">{title}</p>
       {description && (

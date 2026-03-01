@@ -1,10 +1,24 @@
-export default function LogsPage() {
+"use client";
+
+import { PageHeader } from "@/components/common/page-header";
+import { EmptyState } from "@/components/common/empty-state";
+import { TerminalSquare } from "lucide-react";
+
+export default function LogsStubPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] border-2 border-dashed border-border rounded-xl bg-muted/5">
-      <h1 className="text-2xl font-bold">Activity Logs</h1>
-      <p className="text-muted-foreground mt-2 text-center max-w-md">
-        System and user activity logs will be available here soon for auditing and troubleshooting.
-      </p>
+    <div className="space-y-6">
+      <PageHeader
+        title="System Logs"
+        description="Aktivitas sistem dan log error dari berbagai layanan."
+      />
+
+      <div className="pt-12">
+        <EmptyState
+          icon={<TerminalSquare className="h-12 w-12 text-muted-foreground/50" />}
+          title="Under Construction"
+          description="Halaman Logs belum tersedia untuk saat ini."
+        />
+      </div>
     </div>
   );
 }

@@ -16,23 +16,6 @@ export const adminNav: NavGroup[] = [
         url: '/dashboard/users',
         icon: User2,
         roles: ['super_admin'],
-        subItem: [
-          {
-            title: 'Create',
-            url: '/dashboard/users/create',
-            roles: ['super_admin'],
-          },
-          {
-            title: 'Roles & Permissions',
-            url: '/dashboard/users/permission',
-            roles: ['super_admin'],
-          },
-          {
-            title: 'Activity',
-            url: '/dashboard/users/activity',
-            roles: ['super_admin'],
-          },
-        ],
       },
       {
         title: 'Teams',

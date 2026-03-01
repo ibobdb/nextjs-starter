@@ -1,10 +1,24 @@
-export default function AnalyticsPage() {
+"use client";
+
+import { PageHeader } from "@/components/common/page-header";
+import { EmptyState } from "@/components/common/empty-state";
+import { BarChart3 } from "lucide-react";
+
+export default function AnalyticsStubPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] border-2 border-dashed border-border rounded-xl bg-muted/5">
-      <h1 className="text-2xl font-bold">Analytics</h1>
-      <p className="text-muted-foreground mt-2 text-center max-w-md">
-        This page is currently under development. Detailed trend analysis and system performance metrics will be displayed here soon.
-      </p>
+    <div className="space-y-6">
+      <PageHeader
+        title="Analytics Overview"
+        description="Pantau performa dan statistik penggunaan DBStudio."
+      />
+
+      <div className="pt-12">
+        <EmptyState
+          icon={<BarChart3 className="h-12 w-12 text-muted-foreground/50" />}
+          title="Coming Soon"
+          description="Halaman Analytics sedang dalam tahap pengembangan. Statistik akan tersedia di update berikutnya."
+        />
+      </div>
     </div>
   );
 }
