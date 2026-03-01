@@ -1,23 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getSession } from '@/lib/auth-client';
+/**
+ * useRole — Role-based access hook (DBStudio Base)
+ *
+ * Menggunakan useSession() sebagai data source tunggal.
+ * Returns { allowed, isLoading } sehingga consumer bisa handle
+ * loading state dengan baik (tidak ada flash of missing content).
+ */
 
-export function useRole(requiredRoles: string | string[]) {
-  const [allowed, setAllowed] = useState(false);
+import { useSession } from '@/hooks/use-session';
 
-  useEffect(() => {
-    getSession().then((session) => {
-      const userRoles = session?.data?.user.roles ?? [];
-      const required = Array.isArray(requiredRoles)
-        ? requiredRoles
-        : [requiredRoles];
+export function useRole(requiredRoles: string | string[]): {
+  allowed: boolean;
+  isLoading: boolean;
+} {
+  const { user, isLoading } = useSession();
 
-      const hasRole = required.some((role) => userRoles.includes(role));
+  if (isLoading) return { allowed: false, isLoading: true };
 
-      setAllowed(hasRole);
-    });
-  }, [requiredRoles]);
+  const required = Array.isArray(requiredRoles)
+    ? requiredRoles
+    : [requiredRoles];
 
-  return allowed;
+  const allowed = required.some((role) => user?.roles?.includes(role) ?? false);
+
+  return { allowed, isLoading: false };
 }

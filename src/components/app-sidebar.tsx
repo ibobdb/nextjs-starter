@@ -20,20 +20,60 @@ import { cn } from '@/lib/utils';
 import { items } from '@/data/siderbar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Role } from '@/lib/rbac/components/role';
+import { useSession } from '@/hooks/use-session';
+import { usePermission } from '@/lib/rbac/hooks/usePermission';
+import { useRole } from '@/lib/rbac/hooks/useRole';
+import type { NavGroup as NavGroupType } from '@/data/nav/types';
+import type { ReactNode } from 'react';
+
+/**
+ * NavGroupGuard — Cek role DAN permission sekaligus untuk satu nav group.
+ * Jika grup punya field permission, user harus memilikinya untuk melihat grup di sidebar.
+ */
+function NavGroupGuard({
+  group,
+  children,
+}: {
+  group: NavGroupType;
+  children: ReactNode;
+}) {
+  const { allowed: hasRole, isLoading: roleLoading } = useRole(group.roles);
+  const { allowed: hasPerm, isLoading: permLoading } = usePermission(
+    group.permission ?? ''
+  );
+
+  if (roleLoading || (group.permission && permLoading)) return null;
+  if (!hasRole) return null;
+  if (group.permission && !hasPerm) return null;
+
+  return <>{children}</>;
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
+  const { user, isLoading: sessionLoading } = useSession();
 
   const activeSegment = pathname;
+
+  /** Helper: inisial dari nama untuk AvatarFallback */
+  const getInitials = (name?: string | null) => {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
 
   return (
     <Sidebar
@@ -65,7 +105,7 @@ export function AppSidebar() {
 
       <SidebarContent className={cn(isCollapsed && 'px-0')}>
         {items.map((group) => (
-          <Role role={group.roles} key={group.label}>
+          <NavGroupGuard group={group} key={group.label}>
             <SidebarGroup
               key={group.label}
               className={cn(isCollapsed && 'px-0')}
@@ -79,7 +119,6 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {group.items.map((item) => {
-                    // exact match for leaf pages; also match sub-routes (e.g. /dashboard/users/create still highlights Users)
                     const active =
                       activeSegment === item.url ||
                       activeSegment.startsWith(item.url + '/');
@@ -120,35 +159,36 @@ export function AppSidebar() {
                             </div>
                           </Link>
                         </SidebarMenuButton>
-                        {!isCollapsed &&
-                          item.subItem &&
-                          item.subItem.map((subitem, i) => {
-                            return (
-                              <DropdownMenu key={i}>
-                                <DropdownMenuTrigger asChild>
-                                  <SidebarMenuAction>
-                                    <MoreHorizontal />
-                                  </SidebarMenuAction>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent side="right" align="start">
-                                  <DropdownMenuItem>
-                                    <Link href={subitem.url}>
-                                      <span>{subitem.title}</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            );
-                          })}
+
+                        {/* ─── SubItem dropdown (satu dropdown untuk semua subItem) ─── */}
+                        {!isCollapsed && item.subItem && item.subItem.length > 0 && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <SidebarMenuAction>
+                                <MoreHorizontal size={15} />
+                              </SidebarMenuAction>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent side="right" align="start">
+                              {item.subItem.map((subitem) => (
+                                <DropdownMenuItem key={subitem.url} asChild>
+                                  <Link href={subitem.url}>
+                                    {subitem.title}
+                                  </Link>
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </SidebarMenuItem>
                     );
                   })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-          </Role>
+          </NavGroupGuard>
         ))}
       </SidebarContent>
+
       <SidebarFooter
         className={cn(
           'mt-auto border-t border-border',
@@ -171,22 +211,35 @@ export function AppSidebar() {
               className={cn('shrink-0', isCollapsed ? 'h-9 w-9' : 'h-8 w-8')}
             >
               <AvatarImage
-                src="https://github.com/ibobdb.png"
-                alt="Boby Nugraha"
+                src={user?.image ?? ''}
+                alt={user?.name ?? 'User'}
               />
-              <AvatarFallback>BN</AvatarFallback>
+              <AvatarFallback className="text-xs font-semibold">
+                {sessionLoading ? '…' : getInitials(user?.name)}
+              </AvatarFallback>
             </Avatar>
+
             {!isCollapsed && (
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-medium text-foreground truncate">
-                  Boby Nugraha
-                </span>
-                <span className="text-xs text-muted-foreground truncate">
-                  bobynugraha19@gmail.com
-                </span>
+                {sessionLoading ? (
+                  <>
+                    <Skeleton className="h-3.5 w-24 mb-1" />
+                    <Skeleton className="h-3 w-32" />
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm font-medium text-foreground truncate">
+                      {user?.name ?? 'Unknown User'}
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {user?.email ?? ''}
+                    </span>
+                  </>
+                )}
               </div>
             )}
           </div>
+
           {!isCollapsed && (
             <Button
               variant="ghost"

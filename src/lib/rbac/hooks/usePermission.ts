@@ -1,18 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getSession } from '@/lib/auth-client';
+/**
+ * usePermission — Permission-based access hook (DBStudio Base)
+ *
+ * Menggunakan useSession() sebagai data source tunggal.
+ * Returns { allowed, isLoading } untuk konsistensi dengan useRole.
+ */
 
-export function usePermission(permission: string) {
-  const [allowed, setAllowed] = useState(false);
+import { useSession } from '@/hooks/use-session';
 
-  useEffect(() => {
-    getSession().then((session) => {
-      if (session?.data?.user.permissions?.includes(permission)) {
-        setAllowed(true);
-      }
-    });
-  }, [permission]);
+export function usePermission(permission: string): {
+  allowed: boolean;
+  isLoading: boolean;
+} {
+  const { user, isLoading } = useSession();
 
-  return allowed;
+  if (isLoading) return { allowed: false, isLoading: true };
+
+  const allowed = user?.permissions?.includes(permission) ?? false;
+
+  return { allowed, isLoading: false };
 }

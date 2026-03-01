@@ -26,20 +26,26 @@ export async function proxy(request: NextRequest) {
   const hasSession = !!sessionToken?.value;
   const isAuthPath = AUTH_PATHS.includes(pathname);
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
+
+  // User sudah login → redirect dari halaman auth ke dashboard
   if (hasSession && isAuthPath) {
-    return NextResponse.redirect(new URL('/dashboard/default', request.url));
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
+  // User belum login & bukan public path → redirect ke login
   if (!hasSession && !isPublicPath) {
     const url = new URL('/auth/login', request.url);
     url.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(url);
   }
+
   let user: ExtendedUser | null = null;
   if (hasSession) {
     const session = await auth.api.getSession({ headers: request.headers });
     user = session?.user ?? null;
   }
+
+  // Redirect /dashboard ke /dashboard/<default page>
   if (pathname === '/dashboard') {
     return NextResponse.redirect(new URL('/dashboard/default', request.url));
   }
@@ -47,14 +53,18 @@ export async function proxy(request: NextRequest) {
   if (pathname === '/auth') {
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
-  const requiredPermission = await Permission.getRequirePermisison(pathname);
-  if (!isPublicPath) {
-    if (requiredPermission && !user?.permissions.includes(requiredPermission)) {
+
+  // Cek permission untuk route yang dilindungi
+  const requiredPermission = await Permission.getRequiredPermission(pathname);
+  if (!isPublicPath && requiredPermission) {
+    if (!user?.permissions.includes(requiredPermission)) {
       return NextResponse.redirect(new URL('/no-access', request.url));
     }
   }
+
   return NextResponse.next();
 }
+
 
 export const config = {
   matcher: [
