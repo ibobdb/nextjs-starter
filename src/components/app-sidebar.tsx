@@ -50,8 +50,32 @@ function NavGroupGuard({
   const { allowed: hasPerm, isLoading: permLoading } = usePermission(
     group.permission ?? ''
   );
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
 
-  if (roleLoading || (group.permission && permLoading)) return null;
+  if (roleLoading || (group.permission && permLoading)) {
+    return (
+      <SidebarGroup className={cn(isCollapsed && 'px-0')}>
+        {!isCollapsed && <Skeleton className="h-3 w-20 mb-2 mt-2 mx-3" />}
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {group.items.map((item, i) => (
+              <SidebarMenuItem key={i}>
+                 <div className={cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2',
+                    isCollapsed ? 'justify-center mx-auto' : ''
+                  )}>
+                    <Skeleton className={cn("shrink-0", isCollapsed ? "h-5 w-5" : "h-4 w-4")} />
+                    {!isCollapsed && <Skeleton className="h-4 w-[70%]" />}
+                 </div>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  }
+
   if (!hasRole) return null;
   if (group.permission && !hasPerm) return null;
 

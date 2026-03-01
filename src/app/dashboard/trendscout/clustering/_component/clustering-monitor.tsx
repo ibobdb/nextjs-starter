@@ -14,6 +14,7 @@ import { Cpu, ChevronDown, Loader2, PlayCircle, CheckCircle2, XCircle, Clock } f
 import { toast } from "sonner"
 import React from "react"
 import { Input } from "@/components/ui/input"
+import { useNotificationSystem } from "@/lib/notification-package"
 
 const STATUS_CONFIG: Record<string, { icon: React.ElementType; color: string; label: string }> = {
   running:    { icon: Loader2, color: "text-blue-500", label: "Running" },
@@ -54,6 +55,7 @@ export default function ClusteringMonitor() {
   const [keyword, setKeyword] = useState("");
   const [lookback, setLookback] = useState("30");
   const [page, setPage] = useState(1);
+  const { refresh } = useNotificationSystem();
   const [hasRunning, setHasRunning] = useState(false);
 
   const { data: response, isLoading, isValidating, mutate } = useSWR(
@@ -81,17 +83,29 @@ export default function ClusteringMonitor() {
     if (!isNaN(days) && days > 0) payload.lookbackDays = days;
 
     try {
-      const res = await topicsApi.runClustering(payload);
+      const res = await fetch('/api/tasks/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'run-clustering',
+          candidateId: 'global', // Marker for global tasks
+          title: `Clustering Job: ${payload.keyword || 'Full Refresh'}`,
+          ...payload
+        })
+      }).then(r => r.json());
+
       if (res.success) {
-        toast.success(`Clustering job started! Job ID: ${res.data?.jobId ?? "unknown"}`);
+        toast.success(`Clustering job initiated! Check progress in the task list.`);
         setKeyword("");
         mutate();
+        refresh();
         setIsOpen(true);
       } else {
         toast.error(`Failed to start clustering: ${res.message}`);
       }
-    } catch {
+    } catch (err: any) {
       toast.error("Something went wrong.");
+      console.error(err);
     } finally {
       setRunning(false);
     }

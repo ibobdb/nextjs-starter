@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { useData } from '@/hooks/use-data';
 import { accessApi, type Role, type Permission } from '@/services/access/api';
+import { Button } from '@/components/ui/button';
 
 const MODULE_COLORS: Record<string, string> = {
   dashboard:   'bg-sky-500/10 text-sky-600 border-sky-500/20',
@@ -32,7 +33,8 @@ const MODULE_COLORS: Record<string, string> = {
 export function RolePermissionsTab() {
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
   const [assignedIds, setAssignedIds] = useState<Set<number>>(new Set());
-  const [toggling, setToggling] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   // ── Load roles & permissions ─────────────────────────────────────────────
   const { data: roles = [], isLoading: rolesLoading } = useData<Role[]>(
@@ -62,46 +64,55 @@ export function RolePermissionsTab() {
     { transform: (res) => res.data! }
   );
 
-
-  // Stable key: string dari sorted IDs — tidak berubah saat SWR return array baru dengan konten sama
+  // Sync assigned IDs when API data changes
   const assignedPermsKey = assignedPerms.map((p) => p.id).sort().join(',');
-
   useEffect(() => {
     setAssignedIds(new Set(assignedPerms.map((p) => p.id)));
+    setHasChanges(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assignedPermsKey]);
+  }, [assignedPermsKey, selectedRoleId]);
 
-  // ── Toggle permission ────────────────────────────────────────────────────
-  const handleToggle = async (permission: Permission, checked: boolean) => {
-    if (!selectedRoleId || toggling !== null) return;
-    setToggling(permission.id);
-
-    // Optimistic update
+  // Handle single permission toggle
+  const handleToggle = (permissionId: number, checked: boolean) => {
     setAssignedIds((prev) => {
       const next = new Set(prev);
-      if (checked) next.add(permission.id); else next.delete(permission.id);
+      if (checked) next.add(permissionId);
+      else next.delete(permissionId);
       return next;
     });
+    setHasChanges(true);
+  };
 
-    try {
-      if (checked) {
-        await accessApi.assignPermission(selectedRoleId, permission.id);
-        toast.success(`${permission.name} ditambahkan`);
+  // Handle Select All/None for a specific module
+  const handleToggleModule = (moduleId: string, checkAll: boolean) => {
+    if (!permData) return;
+    const permsInModule = permData.grouped[moduleId] || [];
+    
+    setAssignedIds((prev) => {
+      const next = new Set(prev);
+      if (checkAll) {
+        permsInModule.forEach(p => next.add(p.id));
       } else {
-        await accessApi.removePermission(selectedRoleId, permission.id);
-        toast.success(`${permission.name} dihapus`);
+        permsInModule.forEach(p => next.delete(p.id));
       }
+      return next;
+    });
+    setHasChanges(true);
+  };
+
+  const handleSave = async () => {
+    if (!selectedRoleId) return;
+    setIsSaving(true);
+    
+    try {
+      await accessApi.syncRolePermissions(selectedRoleId, Array.from(assignedIds));
+      toast.success("Permissions berhasil diperbarui");
+      setHasChanges(false);
       refetchAssigned();
     } catch (e: unknown) {
-      // Rollback
-      setAssignedIds((prev) => {
-        const next = new Set(prev);
-        if (checked) next.delete(permission.id); else next.add(permission.id);
-        return next;
-      });
       toast.error(e instanceof Error ? e.message : 'Gagal mengubah permission');
     } finally {
-      setToggling(null);
+      setIsSaving(false);
     }
   };
 
@@ -116,26 +127,54 @@ export function RolePermissionsTab() {
         description="Pilih role, lalu atur permission yang dimilikinya."
       />
 
-      {/* Role Selector */}
-      <div className="max-w-xs">
-        {rolesLoading ? (
-          <DataLoader variant="list" rows={1} />
-        ) : (
-          <Select
-            value={selectedRoleId?.toString() ?? ''}
-            onValueChange={(v) => setSelectedRoleId(Number(v))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih role..." />
-            </SelectTrigger>
-            <SelectContent>
-              {roles.map((r) => (
-                <SelectItem key={r.id} value={r.id.toString()}>
-                  <span className="font-mono text-sm">{r.name}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Role Selector */}
+        <div className="max-w-xs w-full">
+          {rolesLoading ? (
+            <DataLoader variant="list" rows={1} />
+          ) : (
+            <Select
+              value={selectedRoleId?.toString() ?? ''}
+              onValueChange={(v) => setSelectedRoleId(Number(v))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih role..." />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.map((r) => (
+                  <SelectItem key={r.id} value={r.id.toString()}>
+                    <span className="font-mono text-sm">{r.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
+        {/* Save Controls */}
+        {selectedRoleId && (
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            {hasChanges && (
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setAssignedIds(new Set(assignedPerms.map((p) => p.id)));
+                  setHasChanges(false);
+                }}
+                disabled={isSaving}
+              >
+                Batal
+              </Button>
+            )}
+            <Button 
+              onClick={handleSave} 
+              disabled={!hasChanges || isSaving}
+              className="gap-2"
+            >
+              {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isSaving ? "Menyimpan..." : "Save Changes"}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -167,55 +206,66 @@ export function RolePermissionsTab() {
             <code className="bg-muted px-1 py-0.5 rounded">{selectedRole?.name}</code>
           </p>
 
-          {Object.entries(grouped).map(([module, perms]) => (
-            <div key={module} className="rounded-xl border border-border/50 overflow-hidden">
-              {/* Module Header */}
-              <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/40 border-b border-border/50">
-                <Badge
-                  variant="outline"
-                  className={`capitalize text-[11px] ${MODULE_COLORS[module] ?? 'bg-muted text-muted-foreground'}`}
-                >
-                  {module}
-                </Badge>
-                <span className="text-xs text-muted-foreground ml-auto">
-                  {perms.filter((p) => assignedIds.has(p.id)).length}/{perms.length}
-                </span>
-              </div>
+          {Object.entries(grouped).map(([module, perms]) => {
+             const selectedInModule = perms.filter((p) => assignedIds.has(p.id)).length;
+             const isAllSelected = selectedInModule === perms.length;
 
-              {/* Permission rows */}
-              <div className="divide-y divide-border/40">
-                {perms.map((perm) => {
-                  const isChecked = assignedIds.has(perm.id);
-                  const isToggling = toggling === perm.id;
-
-                  return (
-                    <label
-                      key={perm.id}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/20 cursor-pointer transition-colors"
+             return (
+              <div key={module} className="rounded-xl border border-border/50 overflow-hidden">
+                {/* Module Header */}
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/40 border-b border-border/50">
+                  <Badge
+                    variant="outline"
+                    className={`capitalize text-[11px] ${MODULE_COLORS[module] ?? 'bg-muted text-muted-foreground'}`}
+                  >
+                    {module}
+                  </Badge>
+                  
+                  <div className="ml-auto flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground">
+                      {selectedInModule}/{perms.length}
+                    </span>
+                    
+                    {/* Select All / None Shortcut */}
+                    <div 
+                      className="text-[10px] uppercase font-semibold cursor-pointer text-muted-foreground hover:text-foreground transition-colors border rounded px-1.5 py-0.5 flex items-center select-none"
+                      onClick={() => handleToggleModule(module, !isAllSelected)}
                     >
-                      {isToggling ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
-                      ) : (
+                      {isAllSelected ? 'Kosongkan' : 'Pilih Semua'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Permission rows */}
+                <div className="divide-y divide-border/40">
+                  {perms.map((perm) => {
+                    const isChecked = assignedIds.has(perm.id);
+
+                    return (
+                      <label
+                        key={perm.id}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-muted/20 cursor-pointer transition-colors"
+                      >
                         <Checkbox
                           checked={isChecked}
                           onCheckedChange={(checked) =>
-                            handleToggle(perm, checked === true)
+                            handleToggle(perm.id, checked === true)
                           }
                           className="shrink-0"
                         />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <code className="text-xs font-mono text-foreground">{perm.name}</code>
-                        <p className="text-xs text-muted-foreground mt-0.5 capitalize">
-                          {perm.description}
-                        </p>
-                      </div>
-                    </label>
-                  );
-                })}
+                        <div className="min-w-0 flex-1">
+                          <code className="text-xs font-mono text-foreground">{perm.name}</code>
+                          <p className="text-xs text-muted-foreground mt-0.5 capitalize">
+                            {perm.description}
+                          </p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

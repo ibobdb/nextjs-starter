@@ -11,6 +11,7 @@ import {
   Database,
   Newspaper,
   Settings,
+  Beaker,
 } from 'lucide-react';
 import type { NavGroup } from './types';
 

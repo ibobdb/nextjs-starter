@@ -4,6 +4,9 @@ import { cookies } from 'next/headers';
 import { AppNavbar } from '@/components/app-navbar';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
+import { NotificationProvider } from '@/lib/notification-package';
+import { RouteGuard } from '@/lib/rbac/components/RouteGuard';
+
 export default async function DashboardLayout({
   children,
 }: Readonly<{
@@ -19,16 +22,20 @@ export default async function DashboardLayout({
       enableSystem
       disableTransitionOnChange
     >
-      <SidebarProvider defaultOpen={defaultOpen}>
-        <AppSidebar />
-        <main className="flex flex-col w-full min-h-screen">
-          <Toaster />
-          <AppNavbar />
-          <div className="flex-1 overflow-auto bg-background p-4 md:p-6 lg:p-8">
-            {children}
-          </div>
-        </main>
-      </SidebarProvider>
+      <NotificationProvider>
+        <RouteGuard />
+        <SidebarProvider defaultOpen={defaultOpen}>
+          <AppSidebar />
+          <main className="flex flex-col w-full min-h-screen">
+            <Toaster />
+            <AppNavbar />
+            <div className="flex-1 overflow-auto bg-background p-4 md:p-6 lg:p-8">
+              {children}
+            </div>
+          </main>
+        </SidebarProvider>
+      </NotificationProvider>
     </ThemeProvider>
   );
 }
+

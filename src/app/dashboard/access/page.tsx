@@ -1,20 +1,63 @@
 'use client';
 
-import { ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { ShieldCheck, RefreshCw } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/common/page-header';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useSession } from '@/lib/auth-client';
 import { RolesTab } from './_component/roles-tab';
 import { PermissionsTab } from './_component/permissions-tab';
 import { RolePermissionsTab } from './_component/role-permissions-tab';
 
 export default function AccessPage() {
+  const [isSyncing, setIsSyncing] = useState(false);
+  const { data: session } = useSession();
+  const isSuperAdmin = session?.user?.roles?.includes('super_admin');
+
+  const handleSyncPermissions = async () => {
+    try {
+      setIsSyncing(true);
+      const res = await fetch('/api/access/sync-permissions', { method: 'POST' });
+      const data = await res.json();
+      
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Sync failed');
+      }
+
+      toast.success(data.message);
+      // Wait a moment then refresh to update the tabs
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        icon={ShieldCheck}
-        title="Access Control"
-        description="Kelola roles, permissions, dan hak akses user di seluruh sistem DBStudio."
-      />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <PageHeader
+          icon={ShieldCheck}
+          title="Access Control"
+          description="Kelola roles, permissions, dan hak akses user di seluruh sistem DBStudio."
+        />
+        
+        {isSuperAdmin && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleSyncPermissions}
+            disabled={isSyncing}
+            className="gap-2 shrink-0 bg-primary/5 border-primary/20 hover:bg-primary/10 text-primary"
+          >
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            Sync Permissions
+          </Button>
+        )}
+      </div>
 
       <Tabs defaultValue="roles">
         <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0 h-auto gap-0">

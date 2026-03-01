@@ -12,10 +12,12 @@
 import { generalNav } from './nav/general';
 import { trendscoutNav } from './nav/trendscout';
 import { adminNav } from './nav/admin';
+import { labNav } from './nav/lab';
 
 export const items = [
   ...generalNav,
   ...trendscoutNav,
+  ...labNav,
   ...adminNav,
 ];
 

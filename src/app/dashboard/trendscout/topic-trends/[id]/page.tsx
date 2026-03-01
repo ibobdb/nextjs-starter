@@ -31,6 +31,7 @@ import {
   GitFork,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useNotificationSystem } from '@/lib/notification-package'
 import {
   Dialog,
   DialogContent,
@@ -121,6 +122,7 @@ const VARIANT_INTENTS = [
 export default function CandidateDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
+  const { refresh } = useNotificationSystem()
   const [actionLoading, setActionLoading] = useState<'approve' | 'reject' | 'ignore' | 'update' | 'generate' | 'brief' | 'variant' | null>(null)
   const [editData, setEditData] = useState<{ title: string; priorityScore: number } | null>(null)
   const [showVariantDialog, setShowVariantDialog] = useState(false)
@@ -152,33 +154,44 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
     if (!candidate) return
     setActionLoading(action)
     try {
-      const res = action === 'approve'
-        ? await topicsApi.approveCandidate(candidate.id)
-        : action === 'reject'
-        ? await topicsApi.rejectCandidate(candidate.id)
-        : await topicsApi.ignoreCandidate(candidate.id)
+      if (action === 'approve') {
+        const triggerRes = await fetch('/api/tasks/trigger', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'approve',
+            candidateId: candidate.id,
+            title: `Approving Topic: ${candidate.title}`
+          })
+        }).then(r => r.json());
+
+        if (triggerRes.success) {
+          toast.success('Approval process started in background.');
+          mutate();
+          refresh();
+        } else {
+          toast.error(`Approval failed: ${triggerRes.message}`);
+        }
+      } else {
+        const res = action === 'reject'
+          ? await topicsApi.rejectCandidate(candidate.id)
+          : await topicsApi.ignoreCandidate(candidate.id);
 
         if (res.success) {
-          if (action === 'approve') {
-            toast.promise(mutate(), {
-              loading: 'Updating candidate and generating brief...',
-              success: 'Candidate approved! Brief is being generated.',
-              error: 'Failed to refresh candidate data.',
-            });
-          } else {
-            toast.success(
-              action === 'reject'
-                ? 'Candidate marked as rejected.'
-                : 'Candidate marked as ignored.'
-            );
-            mutate();
-            setTimeout(() => router.push('/dashboard/trendscout/topic-trends'), 1500);
-          }
+          toast.success(
+            action === 'reject'
+              ? 'Candidate marked as rejected.'
+              : 'Candidate marked as ignored.'
+          );
+          mutate();
+          setTimeout(() => router.push('/dashboard/trendscout/topic-trends'), 1500);
         } else {
-        toast.error(`Failed: ${res.message}`)
+          toast.error(`Failed: ${res.message}`)
+        }
       }
-    } catch {
+    } catch (err: any) {
       toast.error('Something went wrong.')
+      console.error(err)
     } finally {
       setActionLoading(null)
     }
@@ -196,8 +209,9 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
       } else {
         toast.error(`Update failed: ${res.message}`)
       }
-    } catch {
+    } catch (err: any) {
       toast.error('Something went wrong.')
+      console.error(err)
     } finally {
       setActionLoading(null)
     }
@@ -207,15 +221,26 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
     if (!candidate) return
     setActionLoading('generate')
     try {
-      const res = await topicsApi.generateContent(candidate.id)
-      if (res.success && res.data) {
-        toast.success('Draft generated successfully!')
-        router.push(`/dashboard/trendscout/content/${res.data.id}`)
+      const res = await fetch('/api/tasks/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-content',
+          candidateId: candidate.id,
+          title: `Generating Article: ${candidate.title}`
+        })
+      }).then(r => r.json());
+
+      if (res.success) {
+        toast.success('Process started! You can track progress in the task list.')
+        mutate();
+        refresh();
       } else {
         toast.error(`Generation failed: ${res.message}`)
       }
-    } catch {
+    } catch (err: any) {
       toast.error('Something went wrong during generation.')
+      console.error(err)
     } finally {
       setActionLoading(null)
     }
@@ -225,15 +250,26 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
     if (!candidate) return
     setActionLoading('brief')
     try {
-      const res = await topicsApi.generateBrief(candidate.id)
+      const res = await fetch('/api/tasks/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-brief',
+          candidateId: candidate.id,
+          title: `Creating Brief: ${candidate.title}`
+        })
+      }).then(r => r.json());
+
       if (res.success) {
-        toast.success('AI Brief generated successfully!')
+        toast.success('Brief creation started in background.')
         mutate()
+        refresh();
       } else {
         toast.error(`Brief generation failed: ${res.message}`)
       }
-    } catch {
+    } catch (err: any) {
       toast.error('Something went wrong during brief generation.')
+      console.error(err)
     } finally {
       setActionLoading(null)
     }
@@ -243,27 +279,29 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
     if (!candidate || !selectedIntent) return
     setActionLoading('variant')
     try {
-      const res = await topicsApi.createVariant(candidate.id, selectedIntent)
-      if (res.success && res.data) {
-        toast.success(`Variant created with intent: ${selectedIntent}`)
+      const res = await fetch('/api/tasks/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create-variant',
+          candidateId: candidate.id,
+          intent: selectedIntent,
+          title: `Creating Variant (${selectedIntent}): ${candidate.title}`
+        })
+      }).then(r => r.json());
+
+      if (res.success) {
+        toast.success(`Variant creation (${selectedIntent}) started.`);
         setShowVariantDialog(false)
         setSelectedIntent('')
-        
-        const newId = res.data?.id
-          || (res.data as { candidate?: { id: string } })?.candidate?.id
-          || (res.data as { _id?: string })?._id
-        
-        if (newId) {
-          router.push(`/dashboard/trendscout/topic-trends/${newId}`)
-        } else {
-          toast.info('Variant created. Refreshing list.')
-          mutate()
-        }
+        mutate()
+        refresh();
       } else {
         toast.error(`Variant creation failed: ${res.message}`)
       }
-    } catch {
+    } catch (err: any) {
       toast.error('Something went wrong.')
+      console.error(err)
     } finally {
       setActionLoading(null)
     }

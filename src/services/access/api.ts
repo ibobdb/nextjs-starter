@@ -61,25 +61,14 @@ export const accessApi = {
     return fetch(`/api/access/role-permissions?roleId=${roleId}`).then(handleRes<{ success: boolean; data: Permission[] }>);
   },
 
-  assignPermission(
+  syncRolePermissions(
     roleId: number,
-    permissionId: number
+    permissionIds: number[]
   ): Promise<{ success: boolean }> {
-    return fetch('/api/access/role-permissions', {
-      method: 'POST',
+    return fetch('/api/access/role-permissions/batch', {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roleId, permissionId }),
-    }).then(handleRes<{ success: boolean }>);
-  },
-
-  removePermission(
-    roleId: number,
-    permissionId: number
-  ): Promise<{ success: boolean }> {
-    return fetch('/api/access/role-permissions', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roleId, permissionId }),
+      body: JSON.stringify({ roleId, permissionIds }),
     }).then(handleRes<{ success: boolean }>);
   },
 };

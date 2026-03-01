@@ -37,11 +37,14 @@ export const usersApi = {
     }).then(handleRes<{ success: boolean }>);
   },
 
-  removeRole(userId: string, roleId: number): Promise<{ success: boolean }> {
-    return fetch(`/api/users/${userId}/roles`, {
-      method: 'DELETE',
+  syncUserRoles(
+    userId: string,
+    roleIds: number[]
+  ): Promise<{ success: boolean }> {
+    return fetch(`/api/users/${userId}/roles/batch`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roleId }),
+      body: JSON.stringify({ roleIds }),
     }).then(handleRes<{ success: boolean }>);
   },
 };

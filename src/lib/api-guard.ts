@@ -23,6 +23,7 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
+import { rateLimit } from '@/lib/rate-limit';
 
 type GuardUser = {
   id: string;
@@ -69,27 +70,43 @@ export async function apiGuard(
 
   const user = session.user as unknown as GuardUser;
 
-  // 2. Permission check (jika diminta)
+  // 2. Rate Limiting Check
+  // Global limit for authenticated users: 200 requests per 60 seconds (generous standard for dashboards)
+  const rl = rateLimit(`user_${user.id}`, { limit: 200, windowMs: 60000 });
+  
+  if (!rl.isAllowed && rl.response) {
+    return {
+      error: rl.response,
+      session: null,
+    };
+  }
+
+  // 3. Permission check (jika diminta)
   if (requiredPermission) {
-    const userPerms: string[] = user.permissions ?? [];
-    const required = Array.isArray(requiredPermission)
-      ? requiredPermission
-      : [requiredPermission];
+    const userRoles: string[] = user.roles ?? [];
+    const isSuperAdmin = userRoles.includes('super_admin');
 
-    const hasPermission = required.some((p) => userPerms.includes(p));
+    if (!isSuperAdmin) {
+      const userPerms: string[] = user.permissions ?? [];
+      const required = Array.isArray(requiredPermission)
+        ? requiredPermission
+        : [requiredPermission];
 
-    if (!hasPermission) {
-      return {
-        error: NextResponse.json(
-          {
-            success: false,
-            error: 'Forbidden',
-            message: `Missing required permission: ${required.join(' or ')}`,
-          },
-          { status: 403 }
-        ),
-        session: null,
-      };
+      const hasPermission = required.some((p) => userPerms.includes(p));
+
+      if (!hasPermission) {
+        return {
+          error: NextResponse.json(
+            {
+              success: false,
+              error: 'Forbidden',
+              message: `Missing required permission: ${required.join(' or ')}`,
+            },
+            { status: 403 }
+          ),
+          session: null,
+        };
+      }
     }
   }
 

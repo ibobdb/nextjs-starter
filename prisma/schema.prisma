@@ -33,6 +33,10 @@ model User {
   updatedAt     DateTime  @default(now()) @updatedAt
   sessions      Session[]
   accounts      Account[]
+  tasks         Task[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  teamMembers   TeamMember[]
 
   @@unique([email])
   @@map("user")
@@ -155,4 +159,100 @@ model AppModule {
   updatedAt   DateTime @updatedAt
 
   @@map("app_module")
+}
+
+// ─── Background Task Tracking ────────────────────────────────────────────────
+
+enum TaskStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model Task {
+  id            String     @id @default(uuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  externalJobId String?    // Job ID returned by the worker (e.g. from TrendScout)
+  title         String
+  status        TaskStatus @default(PENDING)
+  metadata      Json?
+  callbackToken String     @unique // Embedded as URL path: /api/webhooks/tasks/[callbackToken]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@map("task")
+}
+
+// ─── User Notifications ───────────────────────────────────────────────────────
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean          @default(false)
+  actionUrl String?          // Optional: URL to navigate when notification is clicked
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("notification")
+}
+
+// ─── System Audit Logs ────────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  // Optional: System events might not have a specific user
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String   // e.g. "UPDATE_ROLE", "DELETE_NOTIFICATION", "LOGIN_SUCCESS"
+  entity    String   // e.g. "User", "Notification", "Module"
+  entityId  String?  // ID of the target entity affected
+  details   Json?    // Optional payload (before/after changes, meta information)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@map("audit_log")
+}
+
+// ─── Organization / Teams ─────────────────────────────────────────────────────
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  members     TeamMember[]
+
+  @@map("team")
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  teamId    String
+  userId    String
+  role      String   @default("MEMBER") // e.g. "LEADER", "MEMBER"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId]) // A user can only be in a specific team once
+  @@map("team_member")
 }

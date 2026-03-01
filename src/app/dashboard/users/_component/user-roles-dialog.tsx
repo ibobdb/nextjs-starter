@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useData } from "@/hooks/use-data";
 import { accessApi } from "@/services/access/api";
@@ -12,6 +12,7 @@ import { DataLoader } from "@/components/common/data-loader";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { mutate } from "swr";
+import { Button } from "@/components/ui/button";
 
 interface UserRolesDialogProps {
   user: User | null;
@@ -25,31 +26,46 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
     accessApi.getRoles()
   );
 
-  const [isUpdating, setIsUpdating] = useState<number | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Local state for selected roles
+  const [selectedRoleIds, setSelectedRoleIds] = useState<Set<number>>(new Set());
+
+  // Initialize state when user changes or dialog opens
+  useEffect(() => {
+    if (user && open) {
+      setSelectedRoleIds(new Set(user.userRoles.map((ur) => ur.roleId)));
+    }
+  }, [user, open]);
 
   if (!user) return null;
 
-  // Set ID role yang sudah dimiliki user saat ini
-  const userRoleIds = new Set(user.userRoles.map((ur) => ur.roleId));
-
-  const handleToggleRole = async (roleId: number, hasRole: boolean) => {
-    setIsUpdating(roleId);
-    try {
-      if (hasRole) {
-        // Hapus role
-        await usersApi.removeRole(user.id, roleId);
-        toast.success("Role berhasil dihapus dari user");
-      } else {
-        // Tambah role
-        await usersApi.assignRole(user.id, roleId);
-        toast.success("Role berhasil ditambahkan ke user");
+  const handleToggleRole = (roleId: number, checked: boolean) => {
+    setSelectedRoleIds((prev) => {
+      // If we are checking it, we clear out any others to enforce 1 role per user
+      if (checked) {
+        return new Set([roleId]);
       }
+      
+      // If we uncheck, we just clear it out
+      const next = new Set(prev);
+      next.delete(roleId);
+      return next;
+    });
+  };
+
+  const handleSave = async () => {
+    setIsUpdating(true);
+    try {
+      await usersApi.syncUserRoles(user.id, Array.from(selectedRoleIds));
+      toast.success("Role user berhasil diperbarui");
       // Re-fetch daftar user untuk memperbarui tabel & dialog
       mutate("users");
+      onOpenChange(false);
     } catch (err: any) {
       toast.error(err.message || "Gagal mengupdate role user");
     } finally {
-      setIsUpdating(null);
+      setIsUpdating(false);
     }
   };
 
@@ -70,20 +86,20 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
           skeletonVariant="list"
           skeletonProps={{ rows: 3 }}
         >
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             {allRoles?.map((role) => {
-              const hasRole = userRoleIds.has(role.id);
-              const disabled = isUpdating === role.id;
+              const hasRole = selectedRoleIds.has(role.id);
+              const disabled = isUpdating;
 
               return (
                 <div key={role.id} className="flex items-center space-x-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
                   <Checkbox
                     id={`role-${role.id}`}
                     checked={hasRole}
-                    onCheckedChange={() => handleToggleRole(role.id, hasRole)}
+                    onCheckedChange={(checked) => handleToggleRole(role.id, checked === true)}
                     disabled={disabled}
                   />
-                  <div className="grid gap-1.5 leading-none cursor-pointer flex-1">
+                  <div className="grid gap-1.5 leading-none cursor-pointer flex-1" onClick={() => !disabled && handleToggleRole(role.id, !hasRole)}>
                     <Label
                       htmlFor={`role-${role.id}`}
                       className="font-medium cursor-pointer"
@@ -94,17 +110,20 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
                       ID: {role.id}
                     </p>
                   </div>
-                  {isUpdating === role.id && (
-                    <span className="text-xs text-muted-foreground animate-pulse">
-                      Updating...
-                    </span>
-                  )}
                 </div>
               );
             })}
           </div>
         </DataLoader>
-
+        
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isUpdating}>
+            Batal
+          </Button>
+          <Button onClick={handleSave} disabled={isUpdating || isLoading}>
+            {isUpdating ? "Menyimpan..." : "Simpan"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

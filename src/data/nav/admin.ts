@@ -9,31 +9,36 @@ import type { NavGroup } from './types';
 export const adminNav: NavGroup[] = [
   {
     label: 'User & Access',
-    roles: ['super_admin'],
+    roles: ['super_admin', 'admin'],
+    permission: 'user.read',
     items: [
       {
         title: 'Users',
         url: '/dashboard/users',
         icon: User2,
-        roles: ['super_admin'],
+        roles: ['super_admin', 'admin'],
+        permission: 'user.read'
       },
       {
         title: 'Teams',
         url: '/dashboard/teams',
         icon: Users,
-        roles: ['super_admin'],
+        roles: ['super_admin', 'admin'],
+        permission: 'team.read'
       },
       {
         title: 'Access Control',
         url: '/dashboard/access',
         icon: ShieldCheck,
-        roles: ['super_admin'],
+        roles: ['super_admin', 'admin'],
+        permission: 'access.read'
       },
       {
         title: 'Modules Registry',
         url: '/dashboard/modules',
         icon: Blocks,
-        roles: ['super_admin'],
+        roles: ['super_admin', 'admin'],
+        permission: 'module.read'
       },
     ],
   },

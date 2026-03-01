@@ -4,6 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ProfileButton } from './profile-button';
+import { NotificationCenter } from './notification-center';
+import { ActiveTasksCenter } from './active-tasks-center';
+
 export function AppNavbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -23,6 +26,8 @@ export function AppNavbar() {
 
         <div className="flex-1" />
         <div className="flex items-center gap-2">
+          <ActiveTasksCenter />
+          <NotificationCenter />
           <ThemeToggle />
           <ProfileButton />
         </div>
