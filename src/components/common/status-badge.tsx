@@ -27,36 +27,36 @@ interface StatusBadgeProps {
 }
 
 const STATUS_MAP: Record<string, string> = {
-  // Green
-  approved: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400',
-  active:   'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400',
-  success:  'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400',
-  online:   'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400',
-  running:  'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400',
-  done:     'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400',
+  // Green (Success)
+  approved: 'bg-success/10 text-success border-success/20',
+  active:   'bg-success/10 text-success border-success/20',
+  success:  'bg-success/10 text-success border-success/20',
+  online:   'bg-success/10 text-success border-success/20',
+  running:  'bg-success/10 text-success border-success/20',
+  done:     'bg-success/10 text-success border-success/20',
 
-  // Red
-  rejected:  'bg-rose-500/10 text-rose-600 border-rose-500/20 dark:text-rose-400',
-  error:     'bg-rose-500/10 text-rose-600 border-rose-500/20 dark:text-rose-400',
-  failed:    'bg-rose-500/10 text-rose-600 border-rose-500/20 dark:text-rose-400',
-  offline:   'bg-rose-500/10 text-rose-600 border-rose-500/20 dark:text-rose-400',
-  cancelled: 'bg-rose-500/10 text-rose-600 border-rose-500/20 dark:text-rose-400',
+  // Red (Destructive)
+  rejected:  'bg-destructive/10 text-destructive border-destructive/20',
+  error:     'bg-destructive/10 text-destructive border-destructive/20',
+  failed:    'bg-destructive/10 text-destructive border-destructive/20',
+  offline:   'bg-destructive/10 text-destructive border-destructive/20',
+  cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
 
-  // Amber
-  pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400',
-  waiting: 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400',
-  queued:  'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400',
+  // Amber (Warning)
+  pending: 'bg-warning/10 text-warning border-warning/20',
+  waiting: 'bg-warning/10 text-warning border-warning/20',
+  queued:  'bg-warning/10 text-warning border-warning/20',
 
-  // Blue
-  generated:  'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400',
-  processing: 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400',
-  evaluating: 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400',
-  draft:      'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400',
+  // Blue (Info)
+  generated:  'bg-info/10 text-info border-info/20',
+  processing: 'bg-info/10 text-info border-info/20',
+  evaluating: 'bg-info/10 text-info border-info/20',
+  draft:      'bg-info/10 text-info border-info/20',
 
-  // Slate
-  ignored:  'bg-slate-500/10 text-slate-500 border-slate-500/20',
-  skipped:  'bg-slate-500/10 text-slate-500 border-slate-500/20',
-  disabled: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
+  // Slate (Muted)
+  ignored:  'bg-muted/50 text-muted-foreground border-border',
+  skipped:  'bg-muted/50 text-muted-foreground border-border',
+  disabled: 'bg-muted/50 text-muted-foreground border-border',
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {

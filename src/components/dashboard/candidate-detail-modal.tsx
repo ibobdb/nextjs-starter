@@ -126,7 +126,7 @@ export function CandidateDetailModal({
                   Approve Topic & Start Plan
                 </Button>
               ) : (
-                <Badge variant="outline" className="text-emerald-500 border-emerald-500/20 bg-emerald-500/5 px-4 py-2 gap-2 shadow-[0_0_15px_-5px_rgba(16,185,129,0.3)]">
+                <Badge variant="outline" className="text-success border-success/20 bg-success/5 px-4 py-2 gap-2 shadow-[0_0_15px_-5px] shadow-success/30">
                   <Check className="h-4 w-4" />
                   {candidate.status === 'approved' ? 'Successfully Approved' : 'Topic Rejected'}
                 </Badge>

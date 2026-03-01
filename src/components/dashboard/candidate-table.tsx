@@ -55,7 +55,7 @@ export function CandidateTable({
             candidates.map((candidate) => (
               <TableRow key={candidate.id} className="group hover:bg-muted/30 transition-colors border-border/50">
                 <TableCell>
-                  <div className="flex items-center gap-1 font-medium text-emerald-500">
+                  <div className="flex items-center gap-1 font-medium text-success">
                     <TrendingUp className="h-3 w-3" />
                     {candidate.score.toFixed(1)}
                   </div>
@@ -69,9 +69,9 @@ export function CandidateTable({
                 <TableCell>
                   <Badge 
                     className={
-                      candidate.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-[0_0_10px_-2px_rgba(16,185,129,0.2)]' :
-                      candidate.status === 'rejected' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
-                      'bg-blue-500/10 text-blue-500 border-blue-500/20 shadow-[0_0_10px_-2px_rgba(59,130,246,0.2)]'
+                      candidate.status === 'approved' ? 'bg-success/10 text-success border-success/20 shadow-[0_0_10px_-2px] shadow-success/20' :
+                      candidate.status === 'rejected' ? 'bg-destructive/10 text-destructive border-destructive/20' :
+                      'bg-info/10 text-info border-info/20 shadow-[0_0_10px_-2px] shadow-info/20'
                     }
                   >
                     {candidate.status}
@@ -92,7 +92,7 @@ export function CandidateTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10"
+                          className="h-8 w-8 text-muted-foreground hover:text-success hover:bg-success/10"
                           onClick={() => onApprove(candidate.id)}
                         >
                           <Check className="h-4 w-4" />
@@ -100,7 +100,7 @@ export function CandidateTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                           onClick={() => onReject(candidate.id)}
                         >
                           <X className="h-4 w-4" />
