@@ -153,7 +153,7 @@ export function RolesTab() {
         onRetry={refetch}
         emptyTitle="Belum ada role"
         emptyDescription="Tambahkan role pertama untuk memulai."
-        emptyIcon={Shield}
+        emptyIcon={<Shield className="h-7 w-7 text-muted-foreground/60" />}
       />
 
       {/* Create Dialog */}

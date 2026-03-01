@@ -6,7 +6,7 @@ import { JobLog } from "@/services/ts-worker/types"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DataLoader } from "@/components/ui/data-loader"
+import { DataLoader } from "@/components/common/data-loader"
 import { Button } from "@/components/ui/button"
 import { 
   CheckCircle2, 
@@ -68,7 +68,7 @@ export default function JobLogHistory() {
       <CardContent className="p-0">
         {isLoading && !response ? (
           <div className="p-6">
-            <DataLoader variant="list" rows={ITEMS_PER_PAGE} />
+            <DataLoader isLoading={true} skeletonVariant="list" skeletonProps={{ rows: ITEMS_PER_PAGE }} />
           </div>
         ) : !logs?.length ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">

@@ -3,7 +3,7 @@
 import useSWR from "swr"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
-import { DataLoader } from "@/components/ui/data-loader"
+import { DataLoader } from "@/components/common/data-loader"
 import {
   Card,
   CardContent,
@@ -103,7 +103,7 @@ export default function WorkerKeywords() {
       </CardHeader>
       <CardContent>
         {isLoading && keywords.length === 0 ? (
-          <DataLoader variant="tags" count={24} />
+          <DataLoader isLoading={isLoading} skeletonVariant="tags" skeletonProps={{ count: 15 }} />
         ) : keywords.length > 0 ? (
           <div className={`flex flex-wrap gap-2 items-center justify-center p-4 bg-muted/10 rounded-xl min-h-[150px] transition-opacity ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
             {keywords.map((kw, index) => {

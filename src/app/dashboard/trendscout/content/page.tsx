@@ -8,7 +8,7 @@ import { ArticleDraft } from "@/services/ts-worker/types"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { DataLoader } from "@/components/ui/data-loader"
+import { DataLoader } from "@/components/common/data-loader"
 import {
   Table,
   TableBody,
@@ -118,7 +118,7 @@ export default function ContentLibraryPage() {
         <Card>
           {isLoading && items.length === 0 ? (
             <CardContent className="pt-6">
-              <DataLoader variant="table" rows={5} />
+              <DataLoader isLoading={true} skeletonVariant="table" skeletonProps={{ rows: 5 }} />
             </CardContent>
           ) : items.length === 0 ? (
             <CardContent className="py-16 text-center">

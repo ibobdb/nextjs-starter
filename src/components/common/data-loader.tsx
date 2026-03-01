@@ -11,7 +11,7 @@ interface DataLoaderProps {
   /** Apakah data sedang diload fetch / initial load */
   isLoading: boolean;
   /** Pass state error dari SWR / fetcher */
-  error?: Error | any;
+  error?: unknown;
   /** Triggered saat tombol "Coba Lagi" ditekan pada ErrorState */
   onRetry?: () => void;
   /** Kondisi manual apakah data kosong, biasanya dicek length === 0 */
@@ -29,10 +29,10 @@ interface DataLoaderProps {
   /** Deskripsi kustom untuk default EmptyState */
   emptyDescription?: string;
   /** Icon kustom untuk default EmptyState */
-  emptyIcon?: any;
+  emptyIcon?: ReactNode;
 
-  /** Children hanya akan dirender jika tidak loading, tidak error, dan tidak empty */
-  children: ReactNode;
+  /** Children hanya akan dirender jika tidak loading, tidak error, dan tidak empty. Opsional karena legacy code menggunakan conditional (ternary). */
+  children?: ReactNode;
 }
 
 /**
@@ -72,7 +72,7 @@ export function DataLoader({
     return (
       <ErrorState
         title="Gagal Memuat Data"
-        description={error.message || "Terjadi kesalahan yang tidak diketahui"}
+        description={error instanceof Error ? error.message : typeof error === 'string' ? error : "Terjadi kesalahan yang tidak diketahui"}
         onRetry={onRetry}
       />
     );
@@ -102,5 +102,6 @@ export function DataLoader({
     );
   }
 
-  return <>{children}</>;
+  if (children) return <>{children}</>;
+  return null;
 }

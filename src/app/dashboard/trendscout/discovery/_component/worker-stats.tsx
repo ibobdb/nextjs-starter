@@ -2,7 +2,7 @@
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
-import { DataLoader } from '@/components/ui/data-loader';
+import { DataLoader } from '@/components/common/data-loader';
 import { statsApi } from '@/services/ts-worker/api/stats';
 import {
   Card,
@@ -26,7 +26,7 @@ export function SectionCards() {
   });
 
   if (isLoading) {
-    return <DataLoader variant="stat-cards" count={7} />
+    return <DataLoader isLoading={isLoading} skeletonVariant="stat-cards" skeletonProps={{ count: 4 }} />
   }
 
   return (

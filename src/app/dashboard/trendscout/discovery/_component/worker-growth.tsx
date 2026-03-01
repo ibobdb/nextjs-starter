@@ -1,7 +1,7 @@
 "use client"
 
 import useSWR from "swr"
-import { DataLoader } from "@/components/ui/data-loader"
+import { DataLoader } from "@/components/common/data-loader"
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts"
 import {
   Card,
@@ -65,7 +65,7 @@ export default function WorkerGrowth() {
           <CardDescription>Total items discovered per source</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center">
-          <DataLoader variant="card" className="w-full" />
+          <DataLoader isLoading={true} skeletonVariant="card" skeletonProps={{ className: "w-full" }} />
         </CardContent>
       </Card>
     )

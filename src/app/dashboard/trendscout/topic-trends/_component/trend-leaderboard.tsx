@@ -3,7 +3,7 @@
 import useSWR from "swr"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DataLoader } from "@/components/ui/data-loader"
+import { DataLoader } from "@/components/common/data-loader"
 import { topicsApi } from "@/services/ts-worker/api/topics"
 import { TrendKeyword } from "@/services/ts-worker/types"
 import { TrendingUp, Flame, Hash } from "lucide-react"
@@ -38,7 +38,7 @@ export default function TrendLeaderboard() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <DataLoader variant="list" rows={8} />
+          <DataLoader isLoading={isLoading} skeletonVariant="list" skeletonProps={{ rows: 5 }} />
         ) : !trends?.length ? (
           <p className="text-sm text-muted-foreground italic text-center py-6">No trending data available.</p>
         ) : (

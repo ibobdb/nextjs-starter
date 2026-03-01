@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { healthCheck } from "@/services/ts-worker/api/health-check";
 import { Badge } from "@/components/ui/badge";
-import { DataLoader } from "@/components/ui/data-loader";
+import { DataLoader } from "@/components/common/data-loader";
 import useSWR from "swr";
 
 const fetchHealth = () => healthCheck().then((res) => {
@@ -25,7 +25,7 @@ export default function WorkerHealthComponent() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <DataLoader variant="list" rows={4} />
+            <DataLoader isLoading={true} skeletonVariant="list" skeletonProps={{ rows: 4 }} />
           ) : (
           <ul className="space-y-3">
             <li className="flex items-center justify-between text-sm">

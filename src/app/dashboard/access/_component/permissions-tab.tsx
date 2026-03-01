@@ -78,7 +78,7 @@ export function PermissionsTab() {
         error={error}
         onRetry={refetch}
         emptyTitle="Belum ada permission"
-        emptyIcon={Key}
+        emptyIcon={<Key className="h-7 w-7 text-muted-foreground/60" />}
         skeletonRows={8}
       />
     </div>

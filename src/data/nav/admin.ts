@@ -3,7 +3,7 @@
  * Grup navigasi untuk super_admin: user management dan access control.
  */
 
-import { User2, Users, ShieldCheck } from 'lucide-react';
+import { User2, Users, ShieldCheck, Blocks } from 'lucide-react';
 import type { NavGroup } from './types';
 
 export const adminNav: NavGroup[] = [
@@ -27,6 +27,12 @@ export const adminNav: NavGroup[] = [
         title: 'Access Control',
         url: '/dashboard/access',
         icon: ShieldCheck,
+        roles: ['super_admin'],
+      },
+      {
+        title: 'Modules Registry',
+        url: '/dashboard/modules',
+        icon: Blocks,
         roles: ['super_admin'],
       },
     ],

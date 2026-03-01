@@ -27,4 +27,6 @@ export interface NavGroup {
   roles: string[];
   /** Permission yang dibutuhkan untuk melihat seluruh grup ini */
   permission?: string;
+  /** Status ID Modul untuk ngecek flag online/offline global */
+  moduleId?: string;
 }

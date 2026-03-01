@@ -19,6 +19,7 @@ export const trendscoutNav: NavGroup[] = [
     label: 'TrendScout',
     roles: ['super_admin', 'admin', 'manager'],
     permission: 'trendscout.read',
+    moduleId: 'trendscout',
     items: [
       {
         title: 'Discovery',

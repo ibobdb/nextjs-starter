@@ -6,7 +6,7 @@ import { dataSourcesApi } from "@/services/ts-worker/api/datasources"
 import { DataSource } from "@/services/ts-worker/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DataLoader } from "@/components/ui/data-loader"
+import { DataLoader } from "@/components/common/data-loader"
 import { Github,Globe,Code,MessageSquare,Box,Database } from "lucide-react"
 import { statsApi } from "@/services/ts-worker/api/stats"
 import {
@@ -115,7 +115,7 @@ export default function DatasourceMonitor() {
     <Card className="border-none shadow-none bg-transparent">
       <CardContent className="px-0">
         {isLoading ? (
-          <DataLoader variant="stat-cards" count={6} />
+          <DataLoader isLoading={true} skeletonVariant="stat-cards" skeletonProps={{ count: 6 }} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sources?.map((source: DataSource) => {

@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/select"
 import { configApi } from "@/services/ts-worker/api/config"
 import { toast } from "sonner"
-import { DataLoader } from "@/components/ui/data-loader"
+import { DataLoader } from "@/components/common/data-loader"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
@@ -236,7 +236,7 @@ export default function ConfigManager() {
   }
 
   if (isLoading && !response) {
-    return <DataLoader variant="table" rows={5} />
+        return <DataLoader isLoading={isLoading} skeletonVariant="list" skeletonProps={{ rows: 3 }} />
   }
 
   return (

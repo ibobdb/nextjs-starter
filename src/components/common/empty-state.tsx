@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils';
 import { PackageOpen } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 /**

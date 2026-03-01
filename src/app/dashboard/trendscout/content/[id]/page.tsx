@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { DataLoader } from "@/components/ui/data-loader"
+import { DataLoader } from "@/components/common/data-loader"
 import { Separator } from "@/components/ui/separator"
 import {
   FileText,
@@ -110,7 +110,7 @@ export default function DraftEditorPage({ params }: { params: Promise<{ id: stri
   }
 
   if (isDraftLoading) {
-    return <div className="flex justify-center p-20"><DataLoader variant="card" /></div>
+    return <div className="flex justify-center p-20"><DataLoader isLoading={true} skeletonVariant="card" /></div>
   }
 
   if (!draft) {

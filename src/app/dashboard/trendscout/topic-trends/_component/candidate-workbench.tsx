@@ -16,7 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DataLoader } from "@/components/ui/data-loader"
+import { DataLoader } from "@/components/common/data-loader"
 import { topicsApi } from "@/services/ts-worker/api/topics"
 import { statsApi } from "@/services/ts-worker/api/stats"
 import { TopicCandidate } from "@/services/ts-worker/types"
@@ -254,7 +254,7 @@ export default function CandidateWorkbench() {
       </CardHeader>
       <CardContent className="pt-4">
         {isLoading && candidates.length === 0 ? (
-          <DataLoader variant="table" rows={6} />
+          <DataLoader isLoading={isLoading} skeletonVariant="list" skeletonProps={{ rows: 5 }} />
         ) : candidates.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground italic py-10">
             No {status} candidates found.

@@ -142,7 +142,7 @@ export function RolePermissionsTab() {
       {/* Permission Checklist */}
       {!selectedRoleId && (
         <EmptyState
-          icon={ShieldCheck}
+          icon={<ShieldCheck className="h-7 w-7 text-muted-foreground/60" />}
           title="Pilih role terlebih dahulu"
           description="Permissions akan tampil setelah memilih role di atas."
         />

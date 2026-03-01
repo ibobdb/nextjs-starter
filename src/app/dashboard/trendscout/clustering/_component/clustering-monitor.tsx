@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DataLoader } from "@/components/ui/data-loader"
+import { DataLoader } from "@/components/common/data-loader"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { topicsApi } from "@/services/ts-worker/api/topics"
 import { ClusteringProcess, ClusteringRequest } from "@/services/ts-worker/types"
@@ -159,7 +159,7 @@ export default function ClusteringMonitor() {
                 </CardHeader>
                 <CardContent className="pt-4">
                   {isLoading ? (
-                    <DataLoader variant="list" rows={6} />
+                    <DataLoader isLoading={true} skeletonVariant="list" skeletonProps={{ rows: 6 }} />
                   ) : !processes?.length ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl bg-muted/5">
                       <Clock className="h-8 w-8 text-muted-foreground/30 mb-2" />

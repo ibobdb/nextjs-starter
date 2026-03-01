@@ -84,8 +84,8 @@ interface AppTableProps<TData> {
   emptyTitle?: string;
   /** Deskripsi empty state */
   emptyDescription?: string;
-  /** Icon untuk empty state */
-  emptyIcon?: LucideIcon;
+  /** Icon JSX/ReactNode untuk empty state */
+  emptyIcon?: ReactNode;
   /** Action button di empty state */
   emptyAction?: ReactNode;
   /** Jumlah baris skeleton loader. Default: 5 */

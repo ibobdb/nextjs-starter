@@ -144,3 +144,15 @@ model MenuRoles {
   @@unique([menuId, roleId])
   @@map("menu_role")
 }
+
+model AppModule {
+  id          String   @id
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  status      String   @default("ONLINE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("app_module")
+}

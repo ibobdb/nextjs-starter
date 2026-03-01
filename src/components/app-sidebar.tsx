@@ -30,6 +30,8 @@ import {
 import { useSession } from '@/hooks/use-session';
 import { usePermission } from '@/lib/rbac/hooks/usePermission';
 import { useRole } from '@/lib/rbac/hooks/useRole';
+import { useModules } from '@/hooks/use-modules';
+import { Badge } from '@/components/ui/badge';
 import type { NavGroup as NavGroupType } from '@/data/nav/types';
 import type { ReactNode } from 'react';
 
@@ -61,6 +63,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const { user, isLoading: sessionLoading } = useSession();
+  const { isModuleActive } = useModules();
 
   const activeSegment = pathname;
 
@@ -104,15 +107,21 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className={cn(isCollapsed && 'px-0')}>
-        {items.map((group) => (
+        {items.map((group) => {
+          const isGroupActive = group.moduleId ? isModuleActive(group.moduleId) : true;
+
+          return (
           <NavGroupGuard group={group} key={group.label}>
             <SidebarGroup
               key={group.label}
               className={cn(isCollapsed && 'px-0')}
             >
               {!isCollapsed && (
-                <SidebarGroupLabel className="text-xs font-medium text-muted-foreground/80 px-3">
+                <SidebarGroupLabel className="text-xs font-medium text-muted-foreground/80 px-3 flex justify-between items-center">
                   {group.label}
+                  {!isGroupActive && (
+                    <Badge variant="destructive" className="h-4 text-[9px] px-1.5 uppercase leading-none font-semibold">Offline</Badge>
+                  )}
                 </SidebarGroupLabel>
               )}
 
@@ -136,7 +145,8 @@ export function AppSidebar() {
                               : 'justify-between px-3 py-2',
                             active
                               ? 'bg-accent text-accent-foreground font-medium'
-                              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                            !isGroupActive && 'opacity-60 pointer-events-none'
                           )}
                         >
                           <Link
@@ -186,7 +196,7 @@ export function AppSidebar() {
               </SidebarGroupContent>
             </SidebarGroup>
           </NavGroupGuard>
-        ))}
+        )})}
       </SidebarContent>
 
       <SidebarFooter
