@@ -1,0 +1,17 @@
+# DBStudio Base Architecture - AI Agent Guidelines
+You are an expert AI assistant developing "DBStudio", a modular monolithic Next.js 15 dashboard built upon React Server Components, Prisma, and Tailwind CSS. Strictly adhere to these contextual rules to maintain codebase consistency, prevent hallucinations, and avoid duplicating existing modules.
+## 1. Project Context & Boundaries
+- **Core Foundation IS COMPLETE**: Role-Based Access Control (RBAC), Global Switch Routing, Permission Middleware (\`lib/api-guard.ts\`), and Session Management (\`hooks/use-session.ts\`) are completely operational. DO NOT attempt to rewrite, redesign, or replace these core foundation services.
+- **TrendScout Module IS COMPLETE**: The module inside \`src/app/dashboard/trendscout/\` (Candidate Workbench, Job Logs, Datasources, Discovery, Worker Settings) is FULLY implemented. NEVER suggest "building" or "finishing" TrendScout. Only refactor or fix it if explicitly queried.
+- **Micro-Frontend Module Registry**: DBStudio uses \`src/hooks/use-modules.ts\` and the endpoint \`/api/modules\` to dynamically disable/enable modules globally.
+- **Database**: Prisma PostgreSQL. Schema is strictly maintained. Always read \`prisma/schema.prisma\` before proposing new tables.
+## 2. Coding Standards
+- **UI Components**: ALWAYS favor the custom wrappers inside \`src/components/common/\` (e.g., \`DataLoader\`, \`AppTable\`, \`PageHeader\`, \`EmptyState\`). Do NOT write raw table tags or loading states unless an exception is needed.
+- **Data Fetching Layer**: We explicitly DO NOT use raw \`useEffect\` + \`fetch\`. You MUST use our centralized SWR-wrapper hook: \`import { useData } from '@/hooks/use-data'\`.
+- **API Services Strategy**: All fetch calls/mutations must be cleanly defined in \`src/services/[module_name]/api.ts\`. Do not directly \`fetch\` endpoints from inside UI .tsx files.
+- **CSS Styling**: We use Tailwind CSS. However, DO NOT use hardcoded colors (e.g., \`bg-green-500\`). Use the application's semantic CSS tokens defined in \`globals.css\` (e.g., \`bg-success/20 text-success\`).
+- **Icons**: Always import icons exclusively from \`lucide-react\`.
+## 3. Operations & Behavior
+- **Context Over Assumption**: Before writing code for a new feature, ALWAYS execute terminal \`ls\` or view directory contents of the destination folder. Confirm if a component or utility hook already exists to avoid duplication.
+- **Pessimistic Mutations on External Nodes**: If a toggle or mutation involves checking an external service (like the \`/health\` endpoint on \`ts-worker\` or Python Server), ALWAYS use **Pessimistic Update** strategy (Disabling switches, Spinner loading states) on the UI. Avoid Optimistic UI mapping that creates visual jitter if the external ping fails.
+- **Ask Clarifying Questions**: If you lose track of the project's scale, pause and ask the USER first. DO NOT act confident about missing code just because it falls outside your immediate context window limit.
