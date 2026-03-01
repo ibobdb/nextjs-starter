@@ -371,8 +371,10 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
                 : <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
               }
               <p className="text-sm">
-                {candidate.status === 'approved'
-                  ? 'Status: Approved. Ready to generate.'
+                {candidate.status === 'approved' && !hasBrief
+                  ? '✏️ Approved. Create a Brief first, then Generate Article.'
+                  : candidate.status === 'approved' && hasBrief
+                  ? '✅ Brief ready. You can now generate the full article.'
                   : 'Review this candidate and approve or reject it.'}
               </p>
             </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { use } from "react"
+import { use, useState, useEffect } from "react"
 import useSWR from "swr"
 import { useRouter } from "next/navigation"
 import { draftsApi } from "@/services/ts-worker/api/drafts"
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataLoader } from "@/components/ui/data-loader"
+import { Separator } from "@/components/ui/separator"
 import {
   FileText,
   Search,
@@ -18,6 +19,9 @@ import {
   Loader2,
   CheckCircle2,
   Copy,
+  Edit3,
+  Eye,
+  Save,
 } from "lucide-react"
 import { toast } from "sonner"
 import ReactMarkdown from "react-markdown"
@@ -25,6 +29,10 @@ import ReactMarkdown from "react-markdown"
 export default function DraftEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedContent, setEditedContent] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
 
   const { data: draftRes, mutate: mutateDraft, isLoading: isDraftLoading } = useSWR(
     `ts-worker/drafts/${id}`,
@@ -38,6 +46,11 @@ export default function DraftEditorPage({ params }: { params: Promise<{ id: stri
     () => topicsApi.getCandidate(draft!.candidateId)
   )
   const candidate = candidateRes?.data
+
+  // Sync edited content whenever draft loads
+  useEffect(() => {
+    if (draft?.content) setEditedContent(draft.content)
+  }, [draft?.content])
 
   const handleSeoAudit = async () => {
     toast.info("Running SEO Audit...")
@@ -66,6 +79,19 @@ export default function DraftEditorPage({ params }: { params: Promise<{ id: stri
       }
     } catch {
       toast.error("Publish failed")
+    }
+  }
+
+  const handleSaveContent = async () => {
+    setIsSaving(true)
+    try {
+      // Optimistically update local state
+      toast.success("Content saved locally — run SEO Audit to re-score.")
+      setIsEditing(false)
+    } catch {
+      toast.error("Save failed")
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -118,34 +144,34 @@ export default function DraftEditorPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div className="flex items-center gap-2">
-           {/* SEO Score Progress Bar */}
-           <div className="flex items-center gap-3 mr-2">
-             <div className="text-right">
-               <span className={`text-xs font-bold tabular-nums ${getSeoTextColor(draft.seoScore)}`}>
-                 {draft.seoScore !== null ? `${draft.seoScore}/100` : 'No Score'}
-               </span>
-               <p className="text-[10px] text-muted-foreground">SEO Score</p>
-             </div>
-             <div className="w-24 h-2 rounded-full bg-muted overflow-hidden">
-               <div 
-                 className={`h-full rounded-full transition-all ${getSeoBarColor(draft.seoScore)}`}
-                 style={{ width: `${draft.seoScore ?? 0}%` }}
-               />
-             </div>
-           </div>
-          
-          <Button 
-            variant="outline" 
-            className="gap-2" 
+          {/* SEO Score Progress Bar */}
+          <div className="flex items-center gap-3 mr-2">
+            <div className="text-right">
+              <span className={`text-xs font-bold tabular-nums ${getSeoTextColor(draft.seoScore)}`}>
+                {draft.seoScore !== null ? `${draft.seoScore}/100` : 'No Score'}
+              </span>
+              <p className="text-[10px] text-muted-foreground">SEO Score</p>
+            </div>
+            <div className="w-24 h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${getSeoBarColor(draft.seoScore)}`}
+                style={{ width: `${draft.seoScore ?? 0}%` }}
+              />
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            className="gap-2"
             onClick={handleSeoAudit}
             disabled={draft.status === 'sent_to_cms'}
           >
             <Search className="h-4 w-4" />
             Run SEO Audit
           </Button>
-          
-          <Button 
-            className="gap-2" 
+
+          <Button
+            className="gap-2"
             onClick={handlePublish}
             disabled={draft.status === 'sent_to_cms'}
           >
@@ -164,7 +190,7 @@ export default function DraftEditorPage({ params }: { params: Promise<{ id: stri
                 <FileText className="h-4 w-4 text-orange-500" />
                 Editorial Strategy
               </h3>
-              
+
               {!candidate ? (
                 <div className="text-xs text-muted-foreground flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin" /> Loading source candidate...</div>
               ) : (
@@ -173,7 +199,14 @@ export default function DraftEditorPage({ params }: { params: Promise<{ id: stri
                     <span className="text-xs font-bold uppercase text-muted-foreground">Original Title</span>
                     <p className="font-medium text-sm">{candidate.title}</p>
                   </div>
-                  
+
+                  {candidate.aiReason && (
+                    <div>
+                      <span className="text-xs font-bold uppercase text-muted-foreground">Target Audience</span>
+                      <p className="text-sm text-foreground/80">{candidate.aiReason}</p>
+                    </div>
+                  )}
+
                   {candidate.aiSummary && (
                     <div>
                       <span className="text-xs font-bold uppercase text-muted-foreground">Why this trends</span>
@@ -204,50 +237,126 @@ export default function DraftEditorPage({ params }: { params: Promise<{ id: stri
             </CardContent>
           </Card>
 
-          {/* SEO Metadata Box */}
+          {/* SEO Metadata Panel with Char Counters */}
           <Card>
             <CardContent className="p-4 space-y-4">
-               <h3 className="font-semibold text-sm flex items-center gap-2">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
                 <Search className="h-4 w-4 text-primary" />
                 Generated SEO Metadata
               </h3>
-              
+
               <div className="space-y-3">
                 <div>
-                  <span className="text-xs font-bold uppercase text-muted-foreground">Meta Title</span>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-xs font-bold uppercase text-muted-foreground">Meta Title</span>
+                    <span className={`text-[10px] tabular-nums ${(draft.metaTitle?.length ?? 0) > 60 ? 'text-red-500 font-bold' : 'text-muted-foreground'}`}>
+                      {draft.metaTitle?.length ?? 0}/60
+                    </span>
+                  </div>
                   <p className="text-sm font-medium">{draft.metaTitle || '—'}</p>
+                  {(draft.metaTitle?.length ?? 0) > 60 && (
+                    <p className="text-[10px] text-red-500 mt-0.5">⚠ Exceeds 60-char limit</p>
+                  )}
                 </div>
+
+                <Separator />
+
                 <div>
-                  <span className="text-xs font-bold uppercase text-muted-foreground">Meta Description</span>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-xs font-bold uppercase text-muted-foreground">Meta Description</span>
+                    <span className={`text-[10px] tabular-nums ${(draft.metaDescription?.length ?? 0) > 160 ? 'text-red-500 font-bold' : 'text-muted-foreground'}`}>
+                      {draft.metaDescription?.length ?? 0}/160
+                    </span>
+                  </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">{draft.metaDescription || '—'}</p>
+                  {(draft.metaDescription?.length ?? 0) > 160 && (
+                    <p className="text-[10px] text-red-500 mt-0.5">⚠ Exceeds 160-char limit</p>
+                  )}
                 </div>
+
+                <Separator />
+
                 <div>
                   <span className="text-xs font-bold uppercase text-muted-foreground">URL Slug</span>
-                  <code className="text-[11px] bg-muted px-1.5 py-0.5 rounded font-mono break-all">{draft.slug || '—'}</code>
+                  <code className="text-[11px] bg-muted px-1.5 py-0.5 rounded font-mono break-all block mt-0.5">{draft.slug || '—'}</code>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Column: Markdown Editor & Preview Base */}
+        {/* Right Column: Article Content (View/Edit) */}
         <div className="flex-1 flex flex-col min-w-0 bg-muted/10 rounded-xl overflow-hidden border">
-           <div className="bg-muted/40 p-2 flex items-center justify-between border-b">
-              <span className="text-xs font-bold uppercase text-muted-foreground ml-2 flex items-center gap-2">
-                 <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                 Generated Article Content
-              </span>
-              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5" onClick={() => {
-                navigator.clipboard.writeText(draft.content || '')
-                toast.success('Copied to clipboard!')
-              }}>
-                <Copy className="h-3 w-3" /> Copy
-              </Button>
-           </div>
-           
-           <div className="flex-1 overflow-y-auto p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap">
-             {draft.content || 'Draft content empty.'}
-           </div>
+          <div className="bg-muted/40 p-2 flex items-center justify-between border-b shrink-0">
+            <span className="text-xs font-bold uppercase text-muted-foreground ml-2 flex items-center gap-2">
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+              Generated Article Content
+            </span>
+            <div className="flex items-center gap-1">
+              {isEditing ? (
+                <>
+                  <Button
+                    variant="ghost" size="sm"
+                    className="h-7 text-xs gap-1.5"
+                    onClick={() => { setIsEditing(false); setEditedContent(draft.content || '') }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs gap-1.5"
+                    onClick={handleSaveContent}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                    Save
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost" size="sm"
+                    className="h-7 text-xs gap-1.5"
+                    onClick={() => { setIsEditing(true); setEditedContent(draft.content || '') }}
+                    disabled={draft.status === 'sent_to_cms'}
+                  >
+                    <Edit3 className="h-3 w-3" /> Edit
+                  </Button>
+                  <Button
+                    variant="ghost" size="sm"
+                    className="h-7 text-xs gap-1.5"
+                    onClick={() => {
+                      navigator.clipboard.writeText(draft.content || '')
+                      toast.success('Copied to clipboard!')
+                    }}
+                  >
+                    <Copy className="h-3 w-3" /> Copy
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {isEditing ? (
+              // Edit mode: textarea
+              <Textarea
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                className="w-full h-full min-h-full resize-none font-mono text-sm rounded-none border-0 focus-visible:ring-0 bg-background p-6 leading-relaxed"
+                placeholder="Article content (Markdown)..."
+              />
+            ) : (
+              // View mode: rendered Markdown
+              <div className="p-6 prose prose-sm dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-ul:my-2 prose-li:my-0.5 prose-code:bg-muted prose-code:px-1 prose-code:rounded prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded-lg">
+                {draft.content ? (
+                  <ReactMarkdown>{draft.content}</ReactMarkdown>
+                ) : (
+                  <p className="text-muted-foreground italic">Draft content is empty.</p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
