@@ -39,6 +39,7 @@ export function ProfileButton() {
     session?.user?.name
       ?.split(' ')
       .map((n: string) => n[0])
+      .slice(0, 2)
       .join('')
       .toUpperCase() || 'U';
 
@@ -47,7 +48,7 @@ export function ProfileButton() {
       <DropdownMenuTrigger asChild>
         <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-primary/10 hover:ring-primary/20 transition-all">
           <AvatarImage
-            src={session?.user?.image || 'https://github.com/ibobdb.png'}
+            src={session?.user?.image ?? ''}
             alt={session?.user?.name || 'User'}
           />
           <AvatarFallback className="bg-linear-to-br from-blue-500 to-purple-500 text-white text-xs font-semibold">

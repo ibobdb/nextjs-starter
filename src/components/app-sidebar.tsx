@@ -18,8 +18,6 @@ import { Shell, MoreVertical, MoreHorizontal } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { items } from '@/data/siderbar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
@@ -27,13 +25,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useSession } from '@/hooks/use-session';
 import { usePermission } from '@/lib/rbac/hooks/usePermission';
 import { useRole } from '@/lib/rbac/hooks/useRole';
 import { useModules } from '@/hooks/use-modules';
 import { Badge } from '@/components/ui/badge';
 import type { NavGroup as NavGroupType } from '@/data/nav/types';
 import type { ReactNode } from 'react';
+import { SystemStatus } from '@/components/system-status';
 
 /**
  * NavGroupGuard — Cek role DAN permission sekaligus untuk satu nav group.
@@ -86,21 +84,9 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
-  const { user, isLoading: sessionLoading } = useSession();
   const { isModuleActive } = useModules();
 
   const activeSegment = pathname;
-
-  /** Helper: inisial dari nama untuk AvatarFallback */
-  const getInitials = (name?: string | null) => {
-    if (!name) return '?';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
-  };
 
   return (
     <Sidebar
@@ -229,61 +215,7 @@ export function AppSidebar() {
           isCollapsed ? 'p-0 py-4 flex items-center justify-center' : 'p-4'
         )}
       >
-        <div
-          className={cn(
-            'flex items-center rounded-lg hover:bg-accent transition-colors cursor-pointer',
-            isCollapsed ? 'justify-center p-0 w-full' : 'justify-between p-2'
-          )}
-        >
-          <div
-            className={cn(
-              'flex items-center',
-              isCollapsed ? '' : 'gap-3 min-w-0 flex-1'
-            )}
-          >
-            <Avatar
-              className={cn('shrink-0', isCollapsed ? 'h-9 w-9' : 'h-8 w-8')}
-            >
-              <AvatarImage
-                src={user?.image ?? ''}
-                alt={user?.name ?? 'User'}
-              />
-              <AvatarFallback className="text-xs font-semibold">
-                {sessionLoading ? '…' : getInitials(user?.name)}
-              </AvatarFallback>
-            </Avatar>
-
-            {!isCollapsed && (
-              <div className="flex flex-col min-w-0 flex-1">
-                {sessionLoading ? (
-                  <>
-                    <Skeleton className="h-3.5 w-24 mb-1" />
-                    <Skeleton className="h-3 w-32" />
-                  </>
-                ) : (
-                  <>
-                    <span className="text-sm font-medium text-foreground truncate">
-                      {user?.name ?? 'Unknown User'}
-                    </span>
-                    <span className="text-xs text-muted-foreground truncate">
-                      {user?.email ?? ''}
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          {!isCollapsed && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 hover:bg-accent-foreground/10"
-            >
-              <MoreVertical size={16} />
-            </Button>
-          )}
-        </div>
+        <SystemStatus isCollapsed={isCollapsed} />
       </SidebarFooter>
     </Sidebar>
   );
