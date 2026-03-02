@@ -13,7 +13,8 @@ import {
   Database
 } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
-import { EmptyState } from "@/components/common/empty-state";
+import { AppTable } from "@/components/common/app-table";
+import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,83 @@ export default function AuditLogsPage() {
     if (act.includes("UPDATE") || act.includes("EDIT")) return "bg-blue-500/10 text-blue-600 border-blue-200/20";
     return "bg-slate-500/10 text-slate-600 border-slate-200/20";
   };
+
+  const columns: ColumnDef<any>[] = [
+    {
+      accessorKey: "createdAt",
+      header: "Timestamp",
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span className="font-medium text-foreground whitespace-nowrap">
+            {format(new Date(row.original.createdAt), 'MMM dd, HH:mm')}
+          </span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {formatDistanceToNow(new Date(row.original.createdAt), { addSuffix: true })}
+          </span>
+        </div>
+      )
+    },
+    {
+      accessorKey: "action",
+      header: "Action",
+      cell: ({ row }) => (
+        <Badge variant="outline" className={cn("uppercase text-[10px] whitespace-nowrap", getActionColor(row.original.action))}>
+          {row.original.action.replace(/_/g, ' ')}
+        </Badge>
+      )
+    },
+    {
+      accessorKey: "entity",
+      header: "Entity",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2 text-muted-foreground whitespace-nowrap">
+          <Database className="h-4 w-4" />
+          <span className="font-medium">{row.original.entity}</span>
+          {row.original.entityId && (
+            <span className="text-xs font-mono bg-muted/50 px-1.5 py-0.5 rounded">
+              {row.original.entityId.substring(0, 8)}...
+            </span>
+          )}
+        </div>
+      )
+    },
+    {
+      accessorKey: "user",
+      header: "User",
+      cell: ({ row }) => (
+        row.original.user ? (
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <User className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="flex flex-col">
+              <span className="font-medium">{row.original.user.name}</span>
+              <span className="text-xs text-muted-foreground">{row.original.user.email}</span>
+            </div>
+          </div>
+        ) : (
+          <span className="text-muted-foreground italic whitespace-nowrap">System</span>
+        )
+      )
+    },
+    {
+      accessorKey: "ipAddress",
+      header: "IP Address",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2 text-muted-foreground whitespace-nowrap">
+          <Globe className="h-4 w-4 opacity-50" />
+          {row.original.ipAddress || 'Unknown'}
+        </div>
+      )
+    },
+    {
+      accessorKey: "details",
+      header: "Details",
+      cell: ({ row }) => (
+        <div className="max-w-[200px] sm:max-w-[300px] truncate text-muted-foreground font-mono text-xs">
+          {row.original.details ? JSON.stringify(row.original.details) : '-'}
+        </div>
+      )
+    }
+  ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -98,115 +176,20 @@ export default function AuditLogsPage() {
         </div>
       </div>
 
-      {isLoading && logs.length === 0 ? (
-        <div className="flex h-[40vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : logs.length === 0 ? (
-        <EmptyState
-          icon={<ShieldAlert className="h-10 w-10 text-muted-foreground/30" />}
-          title="No audit logs found"
-          description="No security events match your current filters."
-        />
-      ) : (
-        <div className="rounded-xl border border-border/50 bg-card overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border/50">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Timestamp</th>
-                  <th className="px-6 py-4 font-medium">Action</th>
-                  <th className="px-6 py-4 font-medium">Entity</th>
-                  <th className="px-6 py-4 font-medium">User</th>
-                  <th className="px-6 py-4 font-medium">IP Address</th>
-                  <th className="px-6 py-4 font-medium">Details</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/40">
-                {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-foreground">
-                          {format(new Date(log.createdAt), 'MMM dd, HH:mm')}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant="outline" className={cn("uppercase text-[10px]", getActionColor(log.action))}>
-                        {log.action.replace(/_/g, ' ')}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Database className="h-4 w-4" />
-                        <span className="font-medium">{log.entity}</span>
-                        {log.entityId && (
-                          <span className="text-xs font-mono bg-muted/50 px-1.5 py-0.5 rounded">
-                            {log.entityId.substring(0, 8)}...
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {log.user ? (
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <div className="flex flex-col">
-                            <span className="font-medium">{log.user.name}</span>
-                            <span className="text-xs text-muted-foreground">{log.user.email}</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground italic">System</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Globe className="h-4 w-4 opacity-50" />
-                        {log.ipAddress || 'Unknown'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 max-w-xs truncate text-muted-foreground font-mono text-xs">
-                      {log.details ? JSON.stringify(log.details) : '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Footer */}
-          {meta && meta.totalPages > 1 && (
-            <div className="p-4 border-t border-border/40 bg-muted/10 flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
-                Showing page {meta.page} of {meta.totalPages} ({meta.total} total)
-              </span>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  Previous
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
-                  disabled={page === meta.totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      <AppTable
+        columns={columns}
+        data={logs}
+        isLoading={isLoading}
+        emptyTitle="No audit logs found"
+        emptyDescription="No security events match your current filters."
+        emptyIcon={<ShieldAlert className="h-10 w-10 text-muted-foreground/30" />}
+        pagination={meta && meta.totalPages > 1 ? {
+          page: meta.page,
+          pageSize: 20,
+          total: meta.total,
+          setPage: setPage
+        } : undefined}
+      />
     </div>
   );
 }

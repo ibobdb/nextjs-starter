@@ -7,6 +7,8 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useSession } from '@/lib/auth-client';
+import { accessApi } from '@/services/access/api';
+
 import { RolesTab } from './_component/roles-tab';
 import { PermissionsTab } from './_component/permissions-tab';
 import { RolePermissionsTab } from './_component/role-permissions-tab';
@@ -19,10 +21,9 @@ export default function AccessPage() {
   const handleSyncPermissions = async () => {
     try {
       setIsSyncing(true);
-      const res = await fetch('/api/access/sync-permissions', { method: 'POST' });
-      const data = await res.json();
+      const data = await accessApi.syncPermissions();
       
-      if (!res.ok || !data.success) {
+      if (!data.success) {
         throw new Error(data.message || 'Sync failed');
       }
 

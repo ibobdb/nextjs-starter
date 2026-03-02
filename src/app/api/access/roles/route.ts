@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextResponse, NextRequest } from 'next/server';
 import { apiGuard } from '@/lib/api-guard';
+import prisma from '@/lib/prisma';
+import { createApiResponse } from '@/lib/api-response';
 
 // GET /api/access/roles — list semua roles beserta jumlah permissions
 export async function GET() {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
   const { name } = await request.json();
   if (!name || typeof name !== 'string' || !name.trim()) {
-    return NextResponse.json({ error: 'Role name is required' }, { status: 400 });
+    return NextResponse.json(createApiResponse(false, 'Role name is required'), { status: 400 });
   }
 
   const slug = name.trim().toLowerCase().replace(/\s+/g, '_');
@@ -39,6 +39,6 @@ export async function POST(request: NextRequest) {
     const role = await prisma.roles.create({ data: { name: slug } });
     return NextResponse.json({ success: true, data: role }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: 'Role name already exists' }, { status: 409 });
+    return NextResponse.json(createApiResponse(false, 'Role name already exists'), { status: 409 });
   }
 }

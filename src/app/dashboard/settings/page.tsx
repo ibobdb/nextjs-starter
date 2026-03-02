@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { authClient, useSession } from "@/lib/auth-client";
 import { PageHeader } from "@/components/common/page-header";
+import { DataLoader } from "@/components/common/data-loader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
@@ -26,11 +27,7 @@ export default function SettingsPage() {
   }, [session?.user?.name]);
 
   if (isPending) {
-    return (
-      <div className="flex h-[40vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <DataLoader isLoading={true} skeletonVariant="spinner" />;
   }
 
   if (!session?.user) {

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
+import { createApiResponse } from '@/lib/api-response';
 
 // GET /api/access/role-permissions?roleId=1
 // List semua permissions yang dimiliki suatu role
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
   const roleId = request.nextUrl.searchParams.get('roleId');
   if (!roleId) {
-    return NextResponse.json({ error: 'roleId is required' }, { status: 400 });
+    return NextResponse.json(createApiResponse(false, 'roleId is required'), { status: 400 });
   }
 
   const rolePermissions = await prisma.rolePermission.findMany({
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   const { roleId, permissionId } = await request.json();
   if (!roleId || !permissionId) {
     return NextResponse.json(
-      { error: 'roleId and permissionId are required' },
+      createApiResponse(false, 'roleId and permissionId are required'),
       { status: 400 }
     );
   }
@@ -45,10 +45,10 @@ export async function POST(request: Request) {
         permissionId: Number(permissionId),
       },
     });
-    return NextResponse.json({ success: true, data: rp }, { status: 201 });
+    return NextResponse.json(createApiResponse(true, undefined, rp), { status: 201 });
   } catch {
     return NextResponse.json(
-      { error: 'Permission already assigned to role' },
+      createApiResponse(false, 'Permission already assigned to role'),
       { status: 409 }
     );
   }
@@ -62,7 +62,7 @@ export async function DELETE(request: Request) {
   const { roleId, permissionId } = await request.json();
   if (!roleId || !permissionId) {
     return NextResponse.json(
-      { error: 'roleId and permissionId are required' },
+      createApiResponse(false, 'roleId and permissionId are required'),
       { status: 400 }
     );
   }
@@ -74,5 +74,5 @@ export async function DELETE(request: Request) {
     },
   });
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json(createApiResponse(true));
 }

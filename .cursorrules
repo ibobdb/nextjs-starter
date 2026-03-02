@@ -7,6 +7,7 @@ You are an expert AI assistant developing "DB STUDIO". DB STUDIO is a centralize
 - **Micro-Frontend Module Registry**: DBStudio uses \`src/hooks/use-modules.ts\` and the endpoint \`/api/modules\` to dynamically disable/enable modules globally.
 - **Database**: Prisma PostgreSQL. Schema is strictly maintained. Always read \`prisma/schema.prisma\` before proposing new tables.
 ## 2. Coding Standards
+- **API Response Format**: ALL backend API routes (`/api/*`) MUST return standardized JSON structures. Never return raw objects like `{ error: 'failed' }`. Use a unified pattern: `{ success: boolean, data?: any, message?: string, error?: string }` via global helper wrappers like `createApiResponse`.
 - **UI Components**: ALWAYS favor the custom wrappers inside \`src/components/common/\` (e.g., \`DataLoader\`, \`AppTable\`, \`PageHeader\`, \`EmptyState\`). Do NOT write raw table tags or loading states unless an exception is needed.
 - **Data Fetching Layer**: We explicitly DO NOT use raw \`useEffect\` + \`fetch\`. You MUST use our centralized SWR-wrapper hook: \`import { useData } from '@/hooks/use-data'\`.
 - **API Services Strategy**: All fetch calls/mutations must be cleanly defined in \`src/services/[module_name]/api.ts\`. Do not directly \`fetch\` endpoints from inside UI .tsx files.

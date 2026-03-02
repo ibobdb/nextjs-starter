@@ -71,5 +71,13 @@ export const accessApi = {
       body: JSON.stringify({ roleId, permissionIds }),
     }).then(handleRes<{ success: boolean }>);
   },
+
+  // ─── System Permissions Sync ─────────────────────────────────────────────────
+
+  syncPermissions(): Promise<{ success: boolean; message?: string }> {
+    return fetch('/api/access/sync-permissions', {
+      method: 'POST',
+    }).then(handleRes<{ success: boolean; message?: string }>);
+  },
 };
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import useSWR from "swr";
 import { format } from "date-fns";
 import { 
   Users, 
@@ -12,9 +11,12 @@ import {
   Pencil
 } from "lucide-react";
 import { toast } from "sonner";
+import { useData } from "@/hooks/use-data";
+import { teamsApi, type Team } from "@/services/teams/api";
 
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState } from "@/components/common/empty-state";
+import { DataLoader } from "@/components/common/data-loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { text } from "stream/consumers";
@@ -44,23 +46,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 
-interface Team {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: string;
-  updatedAt: string;
-  _count?: {
-    members: number;
-  };
-}
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
 export default function TeamsPage() {
-  const { data, error, isLoading, mutate } = useSWR<{ success: boolean; data: Team[] }>(
-    "/api/teams",
-    fetcher
+  const { data: teamsObj, error, isLoading, mutate } = useData<Team[]>(
+    "teams",
+    () => teamsApi.getTeams()
   );
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -69,7 +58,7 @@ export default function TeamsPage() {
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const teams = data?.data || [];
+  const teams = teamsObj || [];
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,14 +66,8 @@ export default function TeamsPage() {
 
     try {
       setIsSubmitting(true);
-      const res = await fetch("/api/teams", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTeam),
-      });
-
-      const body = await res.json();
-      if (!res.ok || !body.success) throw new Error(body.message || "Failed to create team");
+      const body = await teamsApi.createTeam(newTeam);
+      if (!body.success) throw new Error(body.message || "Failed to create team");
 
       toast.success("Team created successfully");
       setIsCreateOpen(false);
@@ -100,9 +83,8 @@ export default function TeamsPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      const res = await fetch(`/api/teams/${deleteId}`, { method: "DELETE" });
-      const body = await res.json();
-      if (!res.ok || !body.success) throw new Error(body.message || "Failed to delete team");
+      const body = await teamsApi.deleteTeam(deleteId);
+      if (!body.success) throw new Error(body.message || "Failed to delete team");
       
       toast.success("Team deleted explicitly");
       mutate();
@@ -127,9 +109,7 @@ export default function TeamsPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex h-[40vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <DataLoader isLoading={true} skeletonVariant="spinner" />
       ) : teams.length === 0 ? (
         <EmptyState
           icon={<Users className="h-10 w-10 text-muted-foreground/30" />}

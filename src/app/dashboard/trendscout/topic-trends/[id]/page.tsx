@@ -4,6 +4,7 @@ import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import { topicsApi } from '@/services/ts-worker/api/topics'
+import { taskService } from '@/services/tasks/api'
 import { TopicCandidate } from '@/services/ts-worker/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -155,15 +156,11 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
     setActionLoading(action)
     try {
       if (action === 'approve') {
-        const triggerRes = await fetch('/api/tasks/trigger', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'approve',
-            candidateId: candidate.id,
-            title: `Approving Topic: ${candidate.title}`
-          })
-        }).then(r => r.json());
+        const triggerRes = await taskService.triggerTask({
+          action: 'approve',
+          candidateId: candidate.id,
+          title: `Approving Topic: ${candidate.title}`
+        });
 
         if (triggerRes.success) {
           toast.success('Approval process started in background.');
@@ -221,15 +218,11 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
     if (!candidate) return
     setActionLoading('generate')
     try {
-      const res = await fetch('/api/tasks/trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'generate-content',
-          candidateId: candidate.id,
-          title: `Generating Article: ${candidate.title}`
-        })
-      }).then(r => r.json());
+      const res = await taskService.triggerTask({
+        action: 'generate-content',
+        candidateId: candidate.id,
+        title: `Generating Article: ${candidate.title}`
+      });
 
       if (res.success) {
         toast.success('Process started! You can track progress in the task list.')
@@ -250,15 +243,11 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
     if (!candidate) return
     setActionLoading('brief')
     try {
-      const res = await fetch('/api/tasks/trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'generate-brief',
-          candidateId: candidate.id,
-          title: `Creating Brief: ${candidate.title}`
-        })
-      }).then(r => r.json());
+      const res = await taskService.triggerTask({
+        action: 'generate-brief',
+        candidateId: candidate.id,
+        title: `Creating Brief: ${candidate.title}`
+      });
 
       if (res.success) {
         toast.success('Brief creation started in background.')
@@ -279,16 +268,12 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
     if (!candidate || !selectedIntent) return
     setActionLoading('variant')
     try {
-      const res = await fetch('/api/tasks/trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'create-variant',
-          candidateId: candidate.id,
-          intent: selectedIntent,
-          title: `Creating Variant (${selectedIntent}): ${candidate.title}`
-        })
-      }).then(r => r.json());
+      const res = await taskService.triggerTask({
+        action: 'create-variant',
+        candidateId: candidate.id,
+        intent: selectedIntent,
+        title: `Creating Variant (${selectedIntent}): ${candidate.title}`
+      });
 
       if (res.success) {
         toast.success(`Variant creation (${selectedIntent}) started.`);

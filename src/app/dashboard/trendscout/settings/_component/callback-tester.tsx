@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, PlayCircle, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNotificationSystem } from '@/lib/notification-package';
+import { taskService } from '@/services/tasks/api';
 
 export function CallbackTester() {
   const { refresh } = useNotificationSystem();
@@ -14,15 +15,11 @@ export function CallbackTester() {
   const runTest = async (type: 'success' | 'failure') => {
     setLoading(type);
     try {
-      const res = await fetch('/api/tasks/trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: type === 'success' ? 'test-success' : 'test-failure',
-          title: `Diagnostic: Callback ${type === 'success' ? 'Success' : 'Failure'} Test`,
-          delayMs: type === 'success' ? 5000 : 3000 // 5s for success, 3s for failure
-        })
-      }).then(r => r.json());
+      const res = await taskService.triggerTask({
+        action: type === 'success' ? 'test-success' : 'test-failure',
+        title: `Diagnostic: Callback ${type === 'success' ? 'Success' : 'Failure'} Test`,
+        delayMs: type === 'success' ? 5000 : 3000 // 5s for success, 3s for failure
+      });
 
       if (res.success) {
         toast.success(`Test initiated! Wait ${type === 'success' ? '5s' : '3s'} for background completion.`);

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
+import { createApiResponse } from '@/lib/api-response';
 
 // PUT /api/access/role-permissions/batch
 // Replace all permissions for a specific role
@@ -14,7 +14,7 @@ export async function PUT(request: NextRequest) {
     
     if (!roleId || !Array.isArray(permissionIds)) {
       return NextResponse.json(
-        { error: 'roleId and permissionIds array are required' },
+        createApiResponse(false, 'roleId and permissionIds array are required'),
         { status: 400 }
       );
     }
@@ -41,11 +41,11 @@ export async function PUT(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({ success: true, message: 'Permissions updated successfully' });
+    return NextResponse.json(createApiResponse(true, 'Permissions updated successfully'));
   } catch (error: any) {
     console.error('[BATCH_ROLE_PERMS_ERROR]', error);
     return NextResponse.json(
-      { error: 'Failed to update role permissions' },
+      createApiResponse(false, 'Failed to update role permissions'),
       { status: 500 }
     );
   }

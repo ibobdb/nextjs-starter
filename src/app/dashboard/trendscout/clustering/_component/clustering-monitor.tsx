@@ -15,6 +15,7 @@ import { toast } from "sonner"
 import React from "react"
 import { Input } from "@/components/ui/input"
 import { useNotificationSystem } from "@/lib/notification-package"
+import { taskService } from "@/services/tasks/api"
 
 const STATUS_CONFIG: Record<string, { icon: React.ElementType; color: string; label: string }> = {
   running:    { icon: Loader2, color: "text-blue-500", label: "Running" },
@@ -83,16 +84,12 @@ export default function ClusteringMonitor() {
     if (!isNaN(days) && days > 0) payload.lookbackDays = days;
 
     try {
-      const res = await fetch('/api/tasks/trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'run-clustering',
-          candidateId: 'global', // Marker for global tasks
-          title: `Clustering Job: ${payload.keyword || 'Full Refresh'}`,
-          ...payload
-        })
-      }).then(r => r.json());
+      const res = await taskService.triggerTask({
+        action: 'run-clustering',
+        candidateId: 'global', // Marker for global tasks
+        title: `Clustering Job: ${payload.keyword || 'Full Refresh'}`,
+        ...payload
+      });
 
       if (res.success) {
         toast.success(`Clustering job initiated! Check progress in the task list.`);

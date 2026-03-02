@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { NextRequest } from 'next/server';
 import type { Resend } from 'resend';
 import { getSystemConfig } from '@/lib/config';
+import { createApiResponse } from '@/lib/api-response';
 
 // Prevent initialization during build time
 let resendInstance: { client: Resend; key: string } | null = null;
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!to || !subject || !html) {
       return Response.json(
-        { error: 'Missing required fields: to, subject, html' },
+      createApiResponse(false, 'Missing required fields: to, subject, html'),
         { status: 400 }
       );
     }
@@ -54,11 +55,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Error && error.message.includes('RESEND_API_KEY')) {
       return Response.json(
-        { error: 'Email service not configured' },
+      createApiResponse(false, 'Email service not configured'),
         { status: 500 }
       );
     }
 
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
+    return Response.json(createApiResponse(false, 'Internal server error'), { status: 500 });
   }
 }

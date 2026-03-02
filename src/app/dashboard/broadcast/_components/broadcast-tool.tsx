@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Megaphone, 
   Send, 
@@ -27,15 +27,20 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 
-interface Role {
-  id: number;
-  name: string;
-}
+import { useData } from '@/hooks/use-data';
+import { accessApi, type Role } from '@/services/access/api';
+import { notificationsApi } from '@/services/notifications/api';
 
 export function BroadcastTool() {
   const [loading, setLoading] = useState(false);
-  const [roles, setRoles] = useState<Role[]>([]);
   const [selectedRoleIds, setSelectedRoleIds] = useState<number[]>([]);
+  
+  const { data } = useData<Role[]>(
+    'access-roles',
+    () => accessApi.getRoles()
+  );
+  const roles = data || [];
+
   const [formData, setFormData] = useState({
     title: '',
     message: '',
@@ -43,14 +48,7 @@ export function BroadcastTool() {
     actionUrl: '',
   });
 
-  useEffect(() => {
-    fetch('/api/access/roles')
-      .then(res => res.json())
-      .then(res => {
-        if (res.success) setRoles(res.data);
-      })
-      .catch(err => console.error('Failed to fetch roles', err));
-  }, []);
+
 
   const handleToggleRole = (roleId: number) => {
     setSelectedRoleIds(prev => 
@@ -68,17 +66,13 @@ export function BroadcastTool() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/notifications/broadcast', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          roleIds: selectedRoleIds
-        })
-      }).then(r => r.json());
+      const res = await notificationsApi.sendBroadcast({
+        ...formData,
+        roleIds: selectedRoleIds
+      });
 
       if (res.success) {
-        toast.success(`Broadcast sent successfully to ${res.count} users!`);
+        toast.success(`Broadcast sent successfully to ${res.data?.count || 0} users!`);
         setFormData({
           title: '',
           message: '',
@@ -182,7 +176,7 @@ export function BroadcastTool() {
                     Loading roles...
                   </div>
                 ) : (
-                  roles.map((role) => (
+                  roles.map((role: Role) => (
                     <div key={role.id} className="flex items-center space-x-2">
                       <Checkbox 
                         id={`role-${role.id}`} 

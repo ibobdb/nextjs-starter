@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { createApiResponse } from '@/lib/api-response';
 import { apiGuard } from '@/lib/api-guard';
 
 // POST /api/users/[id]/roles — assign role ke user
@@ -14,7 +15,7 @@ export async function POST(
   const { roleId } = await request.json();
 
   if (!roleId) {
-    return NextResponse.json({ error: 'roleId is required' }, { status: 400 });
+    return NextResponse.json(createApiResponse(false, 'roleId is required'), { status: 400 });
   }
 
   // Cek apakah user sudah punya role ini
@@ -29,7 +30,7 @@ export async function POST(
 
   if (existing) {
     return NextResponse.json(
-      { error: 'User already has this role' },
+      createApiResponse(false, 'User already has this role'),
       { status: 409 }
     );
   }
@@ -44,7 +45,7 @@ export async function POST(
     },
   });
 
-  return NextResponse.json({ success: true, data: userRole }, { status: 201 });
+  return NextResponse.json(createApiResponse(true, undefined, userRole), { status: 201 });
 }
 
 // DELETE /api/users/[id]/roles — unassign role dari user
@@ -59,7 +60,7 @@ export async function DELETE(
   const { roleId } = await request.json();
 
   if (!roleId) {
-    return NextResponse.json({ error: 'roleId is required' }, { status: 400 });
+    return NextResponse.json(createApiResponse(false, 'roleId is required'), { status: 400 });
   }
 
   await prisma.userRole.deleteMany({
@@ -69,5 +70,5 @@ export async function DELETE(
     },
   });
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json(createApiResponse(true));
 }

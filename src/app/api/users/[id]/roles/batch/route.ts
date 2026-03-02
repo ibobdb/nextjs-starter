@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
+import { createApiResponse } from '@/lib/api-response';
 
 // PUT /api/users/[id]/roles/batch
 // Replace all roles for a specific user
@@ -17,7 +17,7 @@ export async function PUT(
     
     if (!Array.isArray(roleIds)) {
       return NextResponse.json(
-        { error: 'roleIds array is required' },
+      createApiResponse(false, 'roleIds array is required'),
         { status: 400 }
       );
     }
@@ -45,11 +45,11 @@ export async function PUT(
       }
     });
 
-    return NextResponse.json({ success: true, message: 'User roles updated successfully' });
+    return NextResponse.json(createApiResponse(true, 'User roles updated successfully'));
   } catch (error: any) {
     console.error('[BATCH_USER_ROLES_ERROR]', error);
     return NextResponse.json(
-      { error: 'Failed to update user roles' },
+      createApiResponse(false, 'Failed to update user roles'),
       { status: 500 }
     );
   }

@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { useNotifications } from "@/lib/notification-package/useNotifications";
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState } from "@/components/common/empty-state";
+import { DataLoader } from "@/components/common/data-loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,11 +75,7 @@ export default function NotificationsPage() {
   };
 
   if (isLoading && notifications.length === 0) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <DataLoader isLoading={true} skeletonVariant="spinner" />;
   }
 
   return (

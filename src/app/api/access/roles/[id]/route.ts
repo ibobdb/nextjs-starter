@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
+import { createApiResponse } from '@/lib/api-response';
 
 // PUT /api/access/roles/[id] — rename role
 export async function PUT(
@@ -14,7 +15,7 @@ export async function PUT(
   const { name } = await request.json();
 
   if (!name || typeof name !== 'string' || !name.trim()) {
-    return NextResponse.json({ error: 'Role name is required' }, { status: 400 });
+    return NextResponse.json(createApiResponse(false, 'Role name is required'), { status: 400 });
   }
 
   const slug = name.trim().toLowerCase().replace(/\s+/g, '_');
@@ -22,7 +23,7 @@ export async function PUT(
   // Lindungi built-in roles dari rename
   const current = await prisma.roles.findUnique({ where: { id: Number(id) } });
   if (['super_admin', 'admin'].includes(current?.name ?? '')) {
-    return NextResponse.json({ error: 'Cannot rename built-in roles' }, { status: 403 });
+    return NextResponse.json(createApiResponse(false, 'Cannot rename built-in roles'), { status: 403 });
   }
 
   try {
@@ -32,7 +33,7 @@ export async function PUT(
     });
     return NextResponse.json({ success: true, data: role });
   } catch {
-    return NextResponse.json({ error: 'Role name already exists' }, { status: 409 });
+    return NextResponse.json(createApiResponse(false, 'Role name already exists'), { status: 409 });
   }
 }
 
@@ -49,7 +50,7 @@ export async function DELETE(
   // Lindungi super_admin dari penghapusan
   const role = await prisma.roles.findUnique({ where: { id: Number(id) } });
   if (role?.name === 'super_admin') {
-    return NextResponse.json({ error: 'Cannot delete super_admin role' }, { status: 403 });
+    return NextResponse.json(createApiResponse(false, 'Cannot delete super_admin role'), { status: 403 });
   }
 
   await prisma.roles.delete({ where: { id: Number(id) } });
