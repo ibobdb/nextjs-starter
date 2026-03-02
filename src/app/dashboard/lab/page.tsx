@@ -2,7 +2,6 @@
 
 import { TestTube, FlaskConical, ArrowLeft, Megaphone } from 'lucide-react';
 import { CallbackTester } from '../trendscout/settings/_component/callback-tester';
-import { BroadcastTool } from './_component/broadcast-tool';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
@@ -44,8 +43,6 @@ export default function AsyncTestingPage() {
             </p>
           </div>
         </div>
-
-        <BroadcastTool />
 
         <div className="pt-4">
           <CallbackTester />

@@ -3,7 +3,7 @@
  * Grup navigasi untuk super_admin: user management dan access control.
  */
 
-import { User2, Users, ShieldCheck, Blocks } from 'lucide-react';
+import { User2, Users, ShieldCheck, Blocks, Megaphone } from 'lucide-react';
 import type { NavGroup } from './types';
 
 export const adminNav: NavGroup[] = [
@@ -39,6 +39,13 @@ export const adminNav: NavGroup[] = [
         icon: Blocks,
         roles: ['super_admin', 'admin'],
         permission: 'module.read'
+      },
+      {
+        title: 'System Broadcast',
+        url: '/dashboard/broadcast',
+        icon: Megaphone,
+        roles: ['super_admin', 'admin'],
+        permission: 'broadcast.read'
       },
     ],
   },
