@@ -1,7 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { PrismaClient } from '@prisma/client';
-import { customSession } from 'better-auth/plugins';
+import { customSession, twoFactor, admin } from 'better-auth/plugins';
 import {
   getVerificationEmailTemplate,
   getPasswordResetEmailTemplate,
@@ -54,6 +54,10 @@ export const auth = betterAuth({
     updateAge: 60 * 60,
   },
   plugins: [
+    twoFactor({
+      issuer: 'DBStudio Dashboard',
+    }),
+    admin(),
     customSession(async ({ user, session }) => {
       const roles = await prisma.user.findFirst({
         where: { id: session.userId },

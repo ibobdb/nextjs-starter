@@ -26,6 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { toast } from 'sonner';
@@ -49,6 +50,8 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<MessageType>({ type: '', text: '' });
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [totpCode, setTotpCode] = useState('');
 
   // Initialize form
   const form = useForm<LoginFormValues>({
@@ -72,7 +75,14 @@ export function LoginForm() {
           onRequest: () => {
             setIsLoading(true);
           },
-          onSuccess: () => {
+          onSuccess: (ctx: any) => {
+            if (ctx.data?.twoFactorRedirect) {
+              setRequires2FA(true);
+              setMessage({ type: '', text: '' });
+              setIsLoading(false);
+              return;
+            }
+
             toast.success('Login berhasil!');
             setMessage({
               type: 'success',
@@ -161,6 +171,81 @@ export function LoginForm() {
       setIsLoading(false);
     }
   };
+
+  const handleVerify2FA = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!totpCode || totpCode.length !== 6) return toast.error('Format kode tidak valid');
+    
+    setIsLoading(true);
+    setMessage({ type: '', text: '' });
+    
+    try {
+      // @ts-ignore
+      const { error } = await authClient.twoFactor.verifyTotp({
+        code: totpCode,
+        trustDevice: true,
+      });
+      
+      if (error) throw new Error(error.message);
+      
+      toast.success('Verifikasi 2FA berhasil!');
+      setMessage({
+        type: 'success',
+        text: 'Instruktional berhasil! Mengalihkan...',
+      });
+
+      setTimeout(() => {
+        router.push(callbackUrl);
+        router.refresh();
+      }, 500);
+    } catch (error: any) {
+      toast.error(error.message || 'Kode 2FA tidak valid');
+      setMessage({
+        type: 'error',
+        text: 'Kode verifikasi yang Anda masukkan salah atau kadaluarsa.',
+      });
+      setIsLoading(false);
+    }
+  };
+
+  if (requires2FA) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Verifikasi 2FA</CardTitle>
+          <CardDescription className="text-center">
+            Masukkan kode 6-digit dari aplikasi authenticator Anda
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleVerify2FA} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Kode Verifikasi</Label>
+              <Input 
+                placeholder="000000" 
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value)}
+                maxLength={6}
+                disabled={isLoading}
+                className="font-mono text-center tracking-widest text-lg"
+              />
+            </div>
+            {message.text && (
+              <Alert variant={message.type === 'error' ? 'destructive' : 'default'} className="mt-4">
+                <AlertDescription>{message.text}</AlertDescription>
+              </Alert>
+            )}
+            <Button type="submit" className="w-full mt-4" disabled={isLoading || totpCode.length !== 6}>
+              {isLoading ? 'Memverifikasi...' : 'Verifikasi'}
+            </Button>
+            <Button type="button" variant="ghost" className="w-full" onClick={() => setRequires2FA(false)} disabled={isLoading}>
+              Kembali ke Login
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md">

@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ShieldCheck, User, Save } from "lucide-react";
 import { toast } from "sonner";
+import { TwoFactorAuth } from "./_components/two-factor-auth";
+import { ActiveSessions } from "./_components/active-sessions";
 
 export default function SettingsPage() {
   const { data: session, isPending } = useSession();
@@ -150,24 +152,25 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-3 border-t border-border pt-4">
-              <Label>Current Session</Label>
-              <div className="bg-muted/30 p-4 rounded-md border border-border/40 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">IP Address</span>
-                  <span className="font-mono">{session.session.ipAddress || "Unknown"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">User Agent</span>
-                  <span className="font-mono truncate max-w-[200px] sm:max-w-md" title={session.session.userAgent || ""}>
-                    {session.session.userAgent || "Unknown"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Expires At</span>
-                  <span className="font-mono">{new Date(session.session.expiresAt).toLocaleString()}</span>
-                </div>
-              </div>
+              <Label>Active Sessions</Label>
+              <ActiveSessions />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Two-Factor Auth Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Two-Factor Authentication
+            </CardTitle>
+            <CardDescription>
+              Add an extra layer of security to your account or modify existing settings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TwoFactorAuth />
           </CardContent>
         </Card>
       </div>

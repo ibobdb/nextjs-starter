@@ -23,35 +23,38 @@ model Dummy {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  userRoles UserRole[] @relation("UserToUserRole")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  tasks         Task[]
-  notifications Notification[]
-  auditLogs     AuditLog[]
-  teamMembers   TeamMember[]
+  id                 String    @id
+  name               String
+  email              String
+  emailVerified      Boolean   @default(false)
+  image              String?
+  twoFactorEnabled   Boolean   @default(false)
+  userRoles          UserRole[] @relation("UserToUserRole")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @default(now()) @updatedAt
+  sessions           Session[]
+  accounts           Account[]
+  twofactors         TwoFactor[]
+  tasks              Task[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+  teamMembers        TeamMember[]
 
   @@unique([email])
   @@map("user")
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  impersonatedBy String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
   @@map("session")
@@ -86,6 +89,17 @@ model Verification {
 
   @@map("verification")
 }
+
+model TwoFactor {
+  id          String   @id
+  secret      String
+  backupCodes String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor")
+}
+
 model Roles {
   id          Int               @id @default(autoincrement())
   name        String @unique
