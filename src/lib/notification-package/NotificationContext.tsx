@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useTasks } from './useTasks';
 import { useNotifications } from './useNotifications';
 import { NotificationContextType } from './types';
@@ -22,6 +22,38 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const refresh = async () => {
     await Promise.all([refreshTasks(), refreshNotifications()]);
   };
+
+  useEffect(() => {
+    let eventSource: EventSource | null = null;
+    let retryTimeout: NodeJS.Timeout;
+
+    const connect = () => {
+      eventSource = new EventSource('/api/stream/events');
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'task-completed' || data.type === 'broadcast') {
+            refresh();
+          }
+        } catch (e) {
+          console.error('[SSE] Parsing error', e);
+        }
+      };
+
+      eventSource.onerror = () => {
+        eventSource?.close();
+        retryTimeout = setTimeout(connect, 5000);
+      };
+    };
+
+    connect();
+
+    return () => {
+      eventSource?.close();
+      clearTimeout(retryTimeout);
+    };
+  }, [refreshTasks, refreshNotifications]);
 
   return (
     <NotificationContext.Provider

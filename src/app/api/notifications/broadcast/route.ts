@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
 import { NotificationType } from '@prisma/client';
+import { eventBus } from '@/lib/events';
 
 export async function POST(req: NextRequest) {
   // 1. Basic guard (must be logged in)
@@ -64,6 +65,9 @@ export async function POST(req: NextRequest) {
     await prisma.notification.createMany({
       data: notifications
     });
+
+    // Notify connected clients immediately
+    eventBus.emit('system-event', { type: 'broadcast' });
 
     return NextResponse.json({ 
       success: true, 

@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { NotificationType, TaskStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { eventBus } from "@/lib/events";
 
 export async function POST(
   req: Request,
@@ -83,6 +84,9 @@ export async function POST(
           actionUrl: task.metadata && (task.metadata as any).actionUrl ? (task.metadata as any).actionUrl : undefined,
         },
       });
+
+      // Emit SSE to notify client
+      eventBus.emit('system-event', { type: 'task-completed', userId: task.userId, taskId: task.id });
     }
 
     return NextResponse.json({ success: true, status: finalStatus });
