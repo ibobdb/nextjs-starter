@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { QRCodeSVG } from 'qrcode.react';
-import { Loader2, ShieldCheck, ShieldAlert, Copy } from 'lucide-react';
+import { Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 
@@ -19,23 +19,22 @@ export function TwoFactorAuth() {
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [showBackupCodes, setShowBackupCodes] = useState(false);
 
-  const is2FAEnabled = (session?.user as any)?.twoFactorEnabled || false;
+  const is2FAEnabled = (session?.user as { twoFactorEnabled?: boolean })?.twoFactorEnabled || false;
 
   const handleStartSetup = async () => {
     if (!password) return toast.error('Please enter your password to enable 2FA');
     setLoading(true);
     try {
-      // @ts-ignore
       const { data, error } = await authClient.twoFactor.enable({
         password: password
       });
       if (error) throw new Error(error.message);
       
-      if ((data as any)?.totpURI) {
-        setTotpURI((data as any).totpURI);
+      if ((data as { totpURI?: string })?.totpURI) {
+        setTotpURI((data as { totpURI: string }).totpURI);
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to start 2FA setup');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to start 2FA setup');
     } finally {
       setLoading(false);
     }
@@ -45,7 +44,6 @@ export function TwoFactorAuth() {
     if (!verificationCode) return toast.error('Please enter the verification code');
     setLoading(true);
     try {
-      // @ts-ignore
       const { data, error } = await authClient.twoFactor.verifyTotp({
         code: verificationCode,
       });
@@ -59,8 +57,8 @@ export function TwoFactorAuth() {
       setTotpURI(null);
       // Reload to reflect session changes
       setTimeout(() => window.location.reload(), 1500);
-    } catch (err: any) {
-      toast.error(err.message || 'Invalid verification code');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Invalid verification code');
     } finally {
       setLoading(false);
     }
@@ -70,15 +68,14 @@ export function TwoFactorAuth() {
     if (!password) return toast.error('Please enter your password');
     setLoading(true);
     try {
-      // @ts-ignore
       const { error } = await authClient.twoFactor.disable({
         password: password
       });
       if (error) throw new Error(error.message);
       toast.success('Two-Factor Authentication disabled.');
       setTimeout(() => window.location.reload(), 1500);
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to disable 2FA');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to disable 2FA');
     } finally {
       setLoading(false);
     }

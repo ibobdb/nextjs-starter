@@ -22,6 +22,7 @@ export async function GET() {
       },
     });
 
+    console.log(`[TASKS_API] Found ${tasks.length} active tasks for user ${userId}`);
     return NextResponse.json({ success: true, data: tasks });
   } catch (error: any) {
     return NextResponse.json(

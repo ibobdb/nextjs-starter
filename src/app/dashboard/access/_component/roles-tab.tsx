@@ -29,10 +29,21 @@ import { useData } from '@/hooks/use-data';
 import { accessApi, type Role } from '@/services/access/api';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
+import { usePermission } from '@/lib/rbac/hooks/usePermission';
+import { useSession } from '@/hooks/use-session';
+import { PermissionAlert } from '@/components/common/permission-alert';
 
 const PROTECTED_ROLES = ['super_admin', 'admin'];
 
 export function RolesTab() {
+  const { user } = useSession();
+  const { allowed: canCreate } = usePermission('user.create');
+  const { allowed: canDelete } = usePermission('user.delete');
+  const isSuperAdmin = user?.roles?.includes('super_admin');
+  
+  const hasCreateAccess = isSuperAdmin || canCreate;
+  const hasDeleteAccess = isSuperAdmin || canDelete;
+
   const { data: roles = [], isLoading, error, refetch } = useData<Role[]>(
     'access-roles',
     () => accessApi.getRoles(),
@@ -121,7 +132,7 @@ export function RolesTab() {
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              disabled={isProtected}
+              disabled={isProtected || !hasDeleteAccess}
               onClick={() => setDeleteTarget(row.original)}
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -134,14 +145,22 @@ export function RolesTab() {
 
   return (
     <div className="space-y-4">
+      {!hasCreateAccess && !hasDeleteAccess && (
+        <PermissionAlert 
+          message="Anda tidak memiliki izin untuk mengelola (tambah/hapus) role. Silakan hubungi administrator untuk akses manajemen role."
+        />
+      )}
+
       <PageHeader
         title="Roles"
         description="Kelola role yang tersedia di sistem."
         actions={
-          <Button size="sm" className="gap-2" onClick={() => setShowCreate(true)}>
-            <Plus className="h-3.5 w-3.5" />
-            Tambah Role
-          </Button>
+          hasCreateAccess && (
+            <Button size="sm" className="gap-2" onClick={() => setShowCreate(true)}>
+              <Plus className="h-3.5 w-3.5" />
+              Tambah Role
+            </Button>
+          )
         }
       />
 

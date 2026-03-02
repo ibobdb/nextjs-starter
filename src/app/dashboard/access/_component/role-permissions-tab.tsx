@@ -19,11 +19,13 @@ import {
 import { useData } from '@/hooks/use-data';
 import { accessApi, type Role, type Permission } from '@/services/access/api';
 import { Button } from '@/components/ui/button';
+import { usePermission } from '@/lib/rbac/hooks/usePermission';
+import { useSession } from '@/hooks/use-session';
+import { PermissionAlert } from '@/components/common/permission-alert';
 
 const MODULE_COLORS: Record<string, string> = {
   dashboard:   'bg-sky-500/10 text-sky-600 border-sky-500/20',
   user:        'bg-violet-500/10 text-violet-600 border-violet-500/20',
-  trendscout:  'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
   roles:       'bg-amber-500/10 text-amber-600 border-amber-500/20',
   permissions: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
   log:         'bg-slate-500/10 text-slate-500 border-slate-500/20',
@@ -31,6 +33,11 @@ const MODULE_COLORS: Record<string, string> = {
 };
 
 export function RolePermissionsTab() {
+  const { user } = useSession();
+  const { allowed: canUpdate } = usePermission('user.update');
+  const isSuperAdmin = user?.roles?.includes('super_admin');
+  const hasUpdateAccess = isSuperAdmin || canUpdate;
+
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
   const [assignedIds, setAssignedIds] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
@@ -127,6 +134,12 @@ export function RolePermissionsTab() {
         description="Pilih role, lalu atur permission yang dimilikinya."
       />
 
+      {!hasUpdateAccess && (
+        <PermissionAlert 
+          message="Anda tidak memiliki izin untuk mengubah pemetaan permission ke role. Silakan hubungi administrator untuk akses update permission."
+        />
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         {/* Role Selector */}
         <div className="max-w-xs w-full">
@@ -168,7 +181,7 @@ export function RolePermissionsTab() {
             )}
             <Button 
               onClick={handleSave} 
-              disabled={!hasChanges || isSaving}
+              disabled={!hasChanges || isSaving || !hasUpdateAccess}
               className="gap-2"
             >
               {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -227,12 +240,14 @@ export function RolePermissionsTab() {
                     </span>
                     
                     {/* Select All / None Shortcut */}
-                    <div 
-                      className="text-[10px] uppercase font-semibold cursor-pointer text-muted-foreground hover:text-foreground transition-colors border rounded px-1.5 py-0.5 flex items-center select-none"
-                      onClick={() => handleToggleModule(module, !isAllSelected)}
-                    >
-                      {isAllSelected ? 'Kosongkan' : 'Pilih Semua'}
-                    </div>
+                    {hasUpdateAccess && (
+                      <div 
+                        className="text-[10px] uppercase font-semibold cursor-pointer text-muted-foreground hover:text-foreground transition-colors border rounded px-1.5 py-0.5 flex items-center select-none"
+                        onClick={() => handleToggleModule(module, !isAllSelected)}
+                      >
+                        {isAllSelected ? 'Kosongkan' : 'Pilih Semua'}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -252,6 +267,7 @@ export function RolePermissionsTab() {
                             handleToggle(perm.id, checked === true)
                           }
                           className="shrink-0"
+                          disabled={!hasUpdateAccess}
                         />
                         <div className="min-w-0 flex-1">
                           <code className="text-xs font-mono text-foreground">{perm.name}</code>

@@ -12,6 +12,7 @@ import { accessApi } from '@/services/access/api';
 import { RolesTab } from './_component/roles-tab';
 import { PermissionsTab } from './_component/permissions-tab';
 import { RolePermissionsTab } from './_component/role-permissions-tab';
+import { MenusTab } from './_component/menus-tab';
 
 export default function AccessPage() {
   const [isSyncing, setIsSyncing] = useState(false);
@@ -66,6 +67,7 @@ export default function AccessPage() {
             { value: 'roles', label: 'Roles' },
             { value: 'permissions', label: 'Permissions' },
             { value: 'role-permissions', label: 'Role Permissions' },
+            { value: 'menus', label: 'Navigation Menus' },
           ].map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -87,6 +89,10 @@ export default function AccessPage() {
 
         <TabsContent value="role-permissions" className="mt-6">
           <RolePermissionsTab />
+        </TabsContent>
+
+        <TabsContent value="menus" className="mt-6">
+          <MenusTab />
         </TabsContent>
       </Tabs>
     </div>

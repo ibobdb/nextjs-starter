@@ -13,7 +13,7 @@
  *
  * @example Dengan permission check
  * export async function POST() {
- *   const guard = await apiGuard('trendscout.write');
+ *   const guard = await apiGuard('user.write');
  *   if (guard.error) return guard.error;
  *   const { session } = guard; // session tersedia
  *   // ... lanjut logic

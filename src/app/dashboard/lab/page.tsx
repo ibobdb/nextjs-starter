@@ -1,7 +1,7 @@
 'use client';
 
-import { TestTube, FlaskConical, ArrowLeft, Megaphone } from 'lucide-react';
-import { CallbackTester } from '../trendscout/settings/_component/callback-tester';
+import { TestTube, FlaskConical, ArrowLeft } from 'lucide-react';
+import { CallbackTester } from '@/components/dashboard/callback-tester';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
@@ -24,10 +24,10 @@ export default function AsyncTestingPage() {
             <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
               <TestTube className="h-5 w-5 text-purple-600" />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Diagnostic & Broadcast Lab</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Diagnostic Lab</h1>
           </div>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto lg:mx-0 ml-13">
-            Internal tools for system orchestration, manual broadcasting, and asynchronous verification.
+            Internal tools for system orchestration and asynchronous task verification.
           </p>
         </div>
       </div>
@@ -38,8 +38,8 @@ export default function AsyncTestingPage() {
           <div className="text-xs space-y-2">
             <p className="font-bold uppercase tracking-wider">Experimental Environment</p>
             <p className="leading-relaxed">
-              Use this lab to simulate worker responses and push system-wide notifications. 
-              Broadcasts will appear in the notification bell for all targeted users in real-time.
+              Use this lab to simulate background task lifecycles and verify callback integrations. 
+              This replaces the previous worker-specific tests with a generic framework for the Base Project.
             </p>
           </div>
         </div>

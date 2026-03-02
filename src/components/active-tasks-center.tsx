@@ -15,10 +15,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function ActiveTasksCenter() {
   const { tasks } = useNotificationSystem();
+  
+  // Debug log to see tasks in UI
+  console.log(`[ACTIVE_TASKS_UI] Total tasks from context: ${tasks.length}`);
 
   const activeTasks = tasks.filter(
     (t) => t.status === 'RUNNING' || t.status === 'PENDING'
   );
+  
+  if (activeTasks.length > 0) {
+    console.log(`[ACTIVE_TASKS_UI] Displaying ${activeTasks.length} active tasks`);
+  }
 
   if (activeTasks.length === 0) return null;
 

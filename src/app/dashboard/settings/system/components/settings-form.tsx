@@ -10,8 +10,16 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Save, Mail, AppWindow } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePermission } from '@/lib/rbac/hooks/usePermission';
+import { useSession } from '@/hooks/use-session';
+import { PermissionAlert } from '@/components/common/permission-alert';
 
 export function SettingsForm() {
+  const { user } = useSession();
+  const { allowed: canUpdate } = usePermission('settings.update');
+  const isSuperAdmin = user?.roles?.includes('super_admin');
+  const hasUpdateAccess = isSuperAdmin || canUpdate;
+
   const { data, isLoading, mutate } = useData<SystemConfigItem[]>(
     'system-settings',
     () => settingsApi.getSettings()
@@ -32,6 +40,10 @@ export function SettingsForm() {
   }, [data]);
 
   const handleSave = async () => {
+    if (!hasUpdateAccess) {
+      toast.error('You do not have permission to update settings');
+      return;
+    }
     setIsSaving(true);
     try {
       const payload = Object.entries(formData).map(([key, value]) => ({ key, value }));
@@ -42,14 +54,14 @@ export function SettingsForm() {
       } else {
         toast.error(res.error || 'Failed to update settings');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error('An unexpected error occurred');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const getFormGroup = (keys: string[], title: string, description: string, Icon: any) => {
+  const getFormGroup = (keys: string[], title: string, description: string, Icon: React.ComponentType<any>) => {
     if (!data) return null;
     const items = data.filter(d => keys.includes(d.key));
     if (items.length === 0) return null;
@@ -75,6 +87,7 @@ export function SettingsForm() {
                   onChange={(e) => setFormData(prev => ({ ...prev, [item.key]: e.target.value }))}
                   placeholder={item.isSecret ? '********' : ''}
                   className="bg-background"
+                  disabled={!hasUpdateAccess}
                 />
                 {item.isSecret && (
                   <button
@@ -99,15 +112,23 @@ export function SettingsForm() {
 
   return (
     <div className="space-y-6">
+      {!hasUpdateAccess && (
+        <PermissionAlert 
+          message="Anda tidak memiliki izin untuk mengubah konfigurasi sistem. Silakan hubungi administrator jika Anda memerlukan akses update."
+        />
+      )}
+
       {getFormGroup(['APP_NAME', 'APP_DESCRIPTION', 'COMPANY_NAME', 'APP_URL', 'LOGO_URL'], 'Application Identity', 'Manage application name, branding elements, and primary URLs.', AppWindow)}
       {getFormGroup(['EMAIL_FROM', 'SUPPORT_EMAIL', 'RESEND_API_KEY'], 'Email Configuration', 'Manage email delivery settings, contact addresses, and API integrations.', Mail)}
 
-      <div className="flex justify-end pt-2">
-        <Button onClick={handleSave} disabled={isSaving} className="gap-2 px-8">
-          {isSaving ? <span className="animate-spin text-lg">↻</span> : <Save className="h-4 w-4" />}
-          {isSaving ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </div>
+      {hasUpdateAccess && (
+        <div className="flex justify-end pt-2">
+          <Button onClick={handleSave} disabled={isSaving} className="gap-2 px-8">
+            {isSaving ? <span className="animate-spin text-lg">↻</span> : <Save className="h-4 w-4" />}
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

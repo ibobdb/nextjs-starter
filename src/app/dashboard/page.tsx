@@ -1,89 +1,113 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { SummaryCards } from '@/components/dashboard/summary-cards';
-import { GrowthMetricsChart } from '@/components/dashboard/growth-metrics-chart';
-import { statsApi } from '@/services/ts-worker/api/stats';
-import { SummaryStats, GrowthSummary } from '@/services/ts-worker/types';
-import { toast } from 'sonner';
-import { RefreshCw } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  ShieldCheck, 
+  Users, 
+  Settings, 
+  BookOpen,
+  ArrowRight
+} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function DashboardOverviewPage() {
-  const [stats, setStats] = useState<SummaryStats | null>(null);
-  const [growthData, setGrowthData] = useState<GrowthSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchData = useCallback(async (isInitial = false) => {
-    if (isInitial) setLoading(true);
-    else setRefreshing(true);
-
-    try {
-      const [summaryRes, growthRes] = await Promise.all([
-        statsApi.getSummary(),
-        statsApi.getGrowthMetrics()
-      ]);
-
-      if (summaryRes.success && summaryRes.data) {
-        setStats(summaryRes.data);
-      }
-
-      if (growthRes.success && growthRes.data) {
-        // The API returns { summary: GrowthSummary[], recent: ... }
-        setGrowthData(growthRes.data.summary || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch dashboard stats:', error);
-      toast.error('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  const features = [
+    {
+      title: "User Management",
+      description: "Manage users, profiles, and account settings.",
+      icon: Users,
+      link: "/dashboard/users",
+      color: "text-blue-500",
+      bg: "bg-blue-500/10"
+    },
+    {
+      title: "Role-Based Access",
+      description: "Fine-grained control over permissions and roles.",
+      icon: ShieldCheck,
+      link: "/dashboard/access",
+      color: "text-purple-500",
+      bg: "bg-purple-500/10"
+    },
+    {
+      title: "System Config",
+      description: "Dynamic configuration updated in real-time.",
+      icon: Settings,
+      link: "/dashboard/settings/system",
+      color: "text-orange-500",
+      bg: "bg-orange-500/10"
+    },
+    {
+      title: "Documentation",
+      description: "Learn how to extend this starter kit.",
+      icon: BookOpen,
+      link: "https://github.com",
+      color: "text-green-500",
+      bg: "bg-green-500/10"
     }
-  }, []);
-
-  useEffect(() => {
-    fetchData(true);
-  }, [fetchData]);
+  ];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Dashboard Overview
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Real-time insights into your TrendScout pipeline.
-          </p>
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => fetchData()} 
-          disabled={refreshing}
-          className="gap-2 border-border/50 bg-background/50 backdrop-blur-sm"
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh Data
-        </Button>
+      <div className="flex flex-col gap-2">
+        <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          Welcome to DBStudio
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          Your modern, secure, and extensible Next.js starter kit.
+        </p>
       </div>
 
-      <SummaryCards stats={stats} loading={loading} />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {features.map((feature) => (
+          <Card key={feature.title} className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <div className={`p-3 rounded-xl w-fit ${feature.bg} ${feature.color} mb-3`}>
+                <feature.icon className="h-6 w-6" />
+              </div>
+              <CardTitle className="text-xl">{feature.title}</CardTitle>
+              <CardDescription>{feature.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="ghost" size="sm" className="group/btn gap-2 p-0 hover:bg-transparent" asChild>
+                <Link href={feature.link}>
+                  Explore <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-full lg:col-span-4">
-          <GrowthMetricsChart data={growthData} loading={loading} />
-        </div>
-        <div className="col-span-full lg:col-span-3">
-          <div className="h-full border border-dashed rounded-xl flex items-center justify-center text-muted-foreground bg-muted/5 min-h-[350px]">
-            <div className="text-center px-4">
-              <p className="font-medium text-foreground">Advanced Analytics</p>
-              <p className="text-sm">Category breakdown and keyword trends integration coming soon.</p>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden relative">
+        <CardHeader className="pb-0">
+          <CardTitle>Getting Started</CardTitle>
+          <CardDescription>Follow these steps to customize your new dashboard.</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <h4 className="font-semibold flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">1</span>
+                Update Branding
+              </h4>
+              <p className="text-sm text-muted-foreground ml-8">
+                Change the company name, logo, and theme in the system settings.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-semibold flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">2</span>
+                Configure Roles
+              </h4>
+              <p className="text-sm text-muted-foreground ml-8">
+                Define your application permissions and map them to roles.
+              </p>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

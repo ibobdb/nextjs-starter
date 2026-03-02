@@ -13,14 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Dummy
 
-model Dummy {
-  id        Int      @id @default(autoincrement())
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
 
 model User {
   id                 String    @id
@@ -28,6 +21,8 @@ model User {
   email              String
   emailVerified      Boolean   @default(false)
   image              String?
+  role               String?
+  banned             Boolean?
   twoFactorEnabled   Boolean   @default(false)
   userRoles          UserRole[] @relation("UserToUserRole")
   createdAt          DateTime  @default(now())
@@ -76,6 +71,7 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
+  @@unique([providerId, accountId])
   @@map("account")
 }
 
@@ -106,7 +102,7 @@ model Roles {
 
   rolePermissions RolePermission[]
   userRoles       UserRole[]
-  menuRoles       MenuRoles[]
+  menuRoles       MenuRole[]
   @@map("roles")
 }
 
@@ -116,6 +112,7 @@ model Permissions {
   module      String
   description String
   rolePermissions RolePermission[]
+  menus           Menu[]
   @@map("permission")
 }
 
@@ -143,39 +140,8 @@ model UserRole {
   @@map("user_role")
 }
 
-model Menu {
-  id    Int     @id @default(autoincrement())
-  name  String
-  path  String
-  menuRoles MenuRoles[]
-  @@map("menu")
-}
 
-model MenuRoles {
-  id      Int   @id @default(autoincrement())
-  menuId  Int
-  roleId  Int
-
-  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  role Roles @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
-  @@unique([menuId, roleId])
-  @@map("menu_role")
-}
-
-model AppModule {
-  id          String   @id
-  name        String
-  description String?
-  isActive    Boolean  @default(true)
-  status      String   @default("ONLINE")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("app_module")
-}
-
-// ─── System Configuration ─────────────────────────────────────────────────────
+// -- System Configuration --
 
 model SystemConfig {
   key         String   @id     // e.g., "APP_NAME", "EMAIL_FROM"
@@ -200,7 +166,7 @@ model Task {
   id            String     @id @default(uuid())
   userId        String
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  externalJobId String?    // Job ID returned by the worker (e.g. from TrendScout)
+  externalJobId String?    // Job ID returned by the worker
   title         String
   status        TaskStatus @default(PENDING)
   metadata      Json?
@@ -281,4 +247,35 @@ model TeamMember {
 
   @@unique([teamId, userId]) // A user can only be in a specific team once
   @@map("team_member")
+}
+
+// ─── Dynamic Menu System ──────────────────────────────────────────────────
+
+model Menu {
+  id           Int        @id @default(autoincrement())
+  title        String
+  url          String?    // Null means it's a group header or parent
+  icon         String?    // Lucide icon name
+  order        Int        @default(0)
+  parentId     Int?       // For hierarchical menus (Group -> Item)
+  permissionId Int?       // Optional: specific permission required
+  
+  parent       Menu?      @relation("MenuToMenu", fields: [parentId], references: [id], onDelete: Cascade)
+  children     Menu[]     @relation("MenuToMenu")
+  permission   Permissions? @relation(fields: [permissionId], references: [id], onDelete: SetNull)
+  roles        MenuRole[]
+
+  @@map("menu")
+}
+
+model MenuRole {
+  id      Int   @id @default(autoincrement())
+  menuId  Int
+  roleId  Int
+
+  menu Menu  @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  role Roles @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([menuId, roleId])
+  @@map("menu_role")
 }

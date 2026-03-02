@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     const resend = await getResendInstance();
     const defaultFrom = await getSystemConfig('EMAIL_FROM', process.env.EMAIL_FROM || process.env.EMAIL_USER);
-    const appName = await getSystemConfig('APP_NAME', process.env.APP_NAME || 'Trendscout Dashboard');
+    const appName = await getSystemConfig('APP_NAME', process.env.APP_NAME || 'Dashboard');
     
     // Formatting the email so it looks like "APP_NAME <EMAIL_FROM>"
     const formattedDefaultFrom = `${appName} <${defaultFrom as string}>`;

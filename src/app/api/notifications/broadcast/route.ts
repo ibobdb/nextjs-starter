@@ -5,18 +5,9 @@ import { NotificationType } from '@prisma/client';
 import { eventBus } from '@/lib/events';
 
 export async function POST(req: NextRequest) {
-  // 1. Basic guard (must be logged in)
-  const guard = await apiGuard();
+  // 1. Guard with required permission
+  const guard = await apiGuard('broadcast.create');
   if (guard.error) return guard.error;
-
-  // 2. Role check (manual for super_admin)
-  const user = guard.session.user;
-  if (!user.roles.includes('super_admin')) {
-    return NextResponse.json(
-      { success: false, error: 'Forbidden', message: 'Only super_admin can broadcast' },
-      { status: 403 }
-    );
-  }
 
   try {
     const body = await req.json();

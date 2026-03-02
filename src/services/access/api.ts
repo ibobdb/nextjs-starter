@@ -79,5 +79,46 @@ export const accessApi = {
       method: 'POST',
     }).then(handleRes<{ success: boolean; message?: string }>);
   },
+
+  // ─── Dynamic Menus ──────────────────────────────────────────────────────────
+
+  getMenus(): Promise<Menu[]> {
+    return fetch('/api/admin/menus').then(handleRes<Menu[]>);
+  },
+
+  createMenu(data: Partial<Menu>): Promise<Menu> {
+    return fetch('/api/admin/menus', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(handleRes<Menu>);
+  },
+
+  updateMenu(data: Partial<Menu>): Promise<Menu> {
+    return fetch('/api/admin/menus', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(handleRes<Menu>);
+  },
+
+  deleteMenu(id: number): Promise<{ success: boolean }> {
+    return fetch(`/api/admin/menus?id=${id}`, {
+      method: 'DELETE',
+    }).then(handleRes<{ success: boolean }>);
+  },
 };
+
+export interface Menu {
+  id: number;
+  title: string;
+  url: string | null;
+  icon: string | null;
+  order: number;
+  parentId: number | null;
+  permissionId: number | null;
+  permission?: Permission;
+  roles: { role: Role }[];
+  children?: Menu[];
+}
 

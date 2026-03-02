@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { mutate } from "swr";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface UserRolesDialogProps {
   user: User | null;
@@ -20,7 +21,10 @@ interface UserRolesDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+import { usePermission } from "@/lib/rbac/hooks/usePermission";
+
 export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogProps) {
+  const { allowed: canUpdate } = usePermission('user.update');
   // Ambil daftar semua roles dari sistem
   const { data: allRoles, isLoading, error, mutate: mutateRoles } = useData<Role[]>("roles", () =>
     accessApi.getRoles()
@@ -63,7 +67,7 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
       mutate("users");
       onOpenChange(false);
     } catch (err: any) {
-      toast.error(err.message || "Gagal mengupdate role user");
+      toast.error(err instanceof Error ? err.message : "Gagal mengupdate role user");
     } finally {
       setIsUpdating(false);
     }
@@ -97,9 +101,12 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
                     id={`role-${role.id}`}
                     checked={hasRole}
                     onCheckedChange={(checked) => handleToggleRole(role.id, checked === true)}
-                    disabled={disabled}
+                    disabled={disabled || !canUpdate}
                   />
-                  <div className="grid gap-1.5 leading-none cursor-pointer flex-1" onClick={() => !disabled && handleToggleRole(role.id, !hasRole)}>
+                  <div 
+                    className={cn("grid gap-1.5 leading-none flex-1", (!disabled && canUpdate) ? "cursor-pointer" : "cursor-not-allowed opacity-70")} 
+                    onClick={() => (!disabled && canUpdate) && handleToggleRole(role.id, !hasRole)}
+                  >
                     <Label
                       htmlFor={`role-${role.id}`}
                       className="font-medium cursor-pointer"
@@ -120,7 +127,7 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isUpdating}>
             Batal
           </Button>
-          <Button onClick={handleSave} disabled={isUpdating || isLoading}>
+          <Button onClick={handleSave} disabled={isUpdating || isLoading || !canUpdate}>
             {isUpdating ? "Menyimpan..." : "Simpan"}
           </Button>
         </DialogFooter>

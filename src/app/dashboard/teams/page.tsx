@@ -14,12 +14,15 @@ import { toast } from "sonner";
 import { useData } from "@/hooks/use-data";
 import { teamsApi, type Team } from "@/services/teams/api";
 
+import { usePermission } from "@/lib/rbac/hooks/usePermission";
+import { useSession } from "@/hooks/use-session";
+import { PermissionAlert } from "@/components/common/permission-alert";
+
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState } from "@/components/common/empty-state";
 import { DataLoader } from "@/components/common/data-loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { text } from "stream/consumers";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,7 +50,12 @@ import {
 import { Label } from "@/components/ui/label";
 
 export default function TeamsPage() {
-  const { data: teamsObj, error, isLoading, mutate } = useData<Team[]>(
+  const { user } = useSession();
+  const { allowed: canWrite } = usePermission('team.write');
+  const isSuperAdmin = user?.roles?.includes('super_admin');
+  const hasWriteAccess = isSuperAdmin || canWrite;
+
+  const { data: teamsObj, isLoading, mutate } = useData<Team[]>(
     "teams",
     () => teamsApi.getTeams()
   );
@@ -102,11 +110,19 @@ export default function TeamsPage() {
           title="Team Management"
           description="Create and organize internal teams to manage project access."
         />
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create Team
-        </Button>
+        {hasWriteAccess && (
+          <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create Team
+          </Button>
+        )}
       </div>
+
+      {!hasWriteAccess && (
+        <PermissionAlert 
+          message="Anda tidak memiliki izin untuk mengelola (buat/hapus) tim. Silakan hubungi administrator untuk akses manajemen tim."
+        />
+      )}
 
       {isLoading ? (
         <DataLoader isLoading={true} skeletonVariant="spinner" />
@@ -143,7 +159,11 @@ export default function TeamsPage() {
                     <DropdownMenuItem className="gap-2 cursor-pointer disabled opacity-50" disabled>
                        <Pencil className="h-4 w-4" /> Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setDeleteId(team.id)} className="gap-2 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                    <DropdownMenuItem 
+                      onClick={() => setDeleteId(team.id)} 
+                      className="gap-2 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                      disabled={!hasWriteAccess}
+                    >
                       <Trash2 className="h-4 w-4" /> Delete Team
                     </DropdownMenuItem>
                   </DropdownMenuContent>

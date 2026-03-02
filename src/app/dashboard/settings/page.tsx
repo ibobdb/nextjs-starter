@@ -38,8 +38,8 @@ export default function SettingsPage() {
   const initials = user.name?.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2) || "U";
 
   // Note: better-auth `user.roles` and `user.permissions` are typed or populated based on plugins
-  const roles: string[] = (user as any).roles || [];
-  const permissions: string[] = (user as any).permissions || [];
+  const roles: string[] = (user as { roles?: string[] }).roles || [];
+  const permissions: string[] = (user as { permissions?: string[] }).permissions || [];
 
   const handleUpdateProfile = async () => {
     if (!name.trim() || name === user.name) return;
@@ -50,8 +50,8 @@ export default function SettingsPage() {
       });
       if (error) throw new Error(error.message || "Failed to update profile");
       toast.success("Profile updated successfully");
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setIsSaving(false);
     }

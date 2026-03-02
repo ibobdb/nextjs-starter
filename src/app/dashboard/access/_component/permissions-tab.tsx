@@ -11,7 +11,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 const MODULE_COLORS: Record<string, string> = {
   dashboard:   'bg-sky-500/10 text-sky-600 border-sky-500/20',
   user:        'bg-violet-500/10 text-violet-600 border-violet-500/20',
-  trendscout:  'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
   roles:       'bg-amber-500/10 text-amber-600 border-amber-500/20',
   permissions: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
   log:         'bg-slate-500/10 text-slate-500 border-slate-500/20',

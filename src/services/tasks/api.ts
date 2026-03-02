@@ -6,7 +6,7 @@ import { ApiResponse } from '@/lib/api-response';
 
 export interface TaskTriggerPayload {
   action: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface TaskTriggerResponse {

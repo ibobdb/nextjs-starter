@@ -71,18 +71,20 @@ export class Permission {
    */
   static async getRequiredPermission(pathname: string): Promise<string | null> {
     const permissionMap: { prefix: string; permission: string }[] = [
-      // ─── TrendScout ────────────────────────────────────────────────
-      { prefix: '/dashboard/trendscout', permission: 'trendscout.read' },
+
+      { prefix: '/dashboard/default', permission: 'user.read' },
 
       // ─── User & Access ─────────────────────────────────────────────
-      { prefix: '/dashboard/users',  permission: 'user.read' },
-      { prefix: '/dashboard/teams',  permission: 'user.read' },
-      { prefix: '/dashboard/access', permission: 'user.read' },
+      { prefix: '/dashboard/users',  permission: 'admin.read' },
+      { prefix: '/dashboard/teams',  permission: 'admin.read' },
+      { prefix: '/dashboard/access', permission: 'admin.read' },
 
       // ─── General Dashboard ─────────────────────────────────────────
-      { prefix: '/dashboard/analytics', permission: 'dashboard.read' },
-      { prefix: '/dashboard/logs',      permission: 'dashboard.read' },
-      { prefix: '/dashboard/settings',  permission: 'dashboard.read' },
+      { prefix: '/dashboard/analytics', permission: 'admin.read' },
+      { prefix: '/dashboard/logs',      permission: 'admin.read' },
+      { prefix: '/dashboard/settings',  permission: 'admin.read' },
+      { prefix: '/dashboard/broadcast', permission: 'admin.read' },
+      { prefix: '/dashboard/lab',       permission: 'admin.read' },
     ];
 
     for (const item of permissionMap) {

@@ -33,6 +33,33 @@ export const auth = betterAuth({
     //   console.log(`Password for user ${user.email} has been reset.`);
     // },
   },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          // 1. Assign 'user' role in our RBAC system
+          const userRole = await prisma.roles.findFirst({
+            where: { name: 'user' },
+          });
+
+          if (userRole) {
+            await prisma.userRole.create({
+              data: {
+                userId: user.id,
+                roleId: userRole.id,
+              },
+            });
+          }
+
+          // 2. Set the 'role' field for Better Auth Admin plugin compatibility
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { role: 'user' },
+          });
+        },
+      },
+    },
+  },
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   secret: process.env.BETTER_AUTH_SECRET,
   emailVerification: {

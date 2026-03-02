@@ -30,8 +30,11 @@ import { cn } from '@/lib/utils';
 import { useData } from '@/hooks/use-data';
 import { accessApi, type Role } from '@/services/access/api';
 import { notificationsApi } from '@/services/notifications/api';
+import { usePermission } from '@/lib/rbac/hooks/usePermission';
+import { PermissionAlert } from '@/components/common/permission-alert';
 
 export function BroadcastTool() {
+  const { allowed: canBroadcast } = usePermission('broadcast.create');
   const [loading, setLoading] = useState(false);
   const [selectedRoleIds, setSelectedRoleIds] = useState<number[]>([]);
   
@@ -83,8 +86,8 @@ export function BroadcastTool() {
       } else {
         toast.error(`Failed to send broadcast: ${res.message}`);
       }
-    } catch (err) {
-      toast.error('Failed to send broadcast due to a network error');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send broadcast due to a network error');
     } finally {
       setLoading(false);
     }
@@ -100,6 +103,14 @@ export function BroadcastTool() {
           Send manual notifications to all users or specific user roles.
         </p>
       </div>
+
+      {!canBroadcast && (
+        <div className="px-6 pt-6">
+          <PermissionAlert 
+            message="Anda tidak memiliki izin untuk mengirim broadcast. Fitur ini hanya tersedia untuk administrator dengan izin broadcast.create."
+          />
+        </div>
+      )}
 
       <div className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -117,23 +128,23 @@ export function BroadcastTool() {
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Type</label>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 {[
-                  { value: 'INFO', icon: Info, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-                  { value: 'SUCCESS', icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-500/10' },
-                  { value: 'WARNING', icon: AlertCircle, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-                  { value: 'ERROR', icon: XCircle, color: 'text-red-500', bg: 'bg-red-500/10' },
-                ].map((type) => (
+                  { value: 'INFO' as const, icon: Info, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                  { value: 'SUCCESS' as const, icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-500/10' },
+                  { value: 'WARNING' as const, icon: AlertCircle, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+                  { value: 'ERROR' as const, icon: XCircle, color: 'text-red-500', bg: 'bg-red-500/10' },
+                ].map((typeItem) => (
                   <button
-                    key={type.value}
-                    onClick={() => setFormData(prev => ({ ...prev, type: type.value }))}
+                    key={typeItem.value}
+                    onClick={() => setFormData(prev => ({ ...prev, type: typeItem.value }))}
                     className={cn(
                       "flex flex-col items-center justify-center p-3 rounded-xl border transition-all gap-2",
-                      formData.type === type.value 
-                        ? cn("border-primary ring-1 ring-primary", type.bg) 
+                      formData.type === typeItem.value 
+                        ? cn("border-primary ring-1 ring-primary", typeItem.bg) 
                         : "border-border hover:bg-muted/50"
                     )}
                   >
-                    <type.icon className={cn("h-4 w-4", type.color)} />
-                    <span className="text-[10px] font-bold uppercase">{type.value}</span>
+                    <typeItem.icon className={cn("h-4 w-4", typeItem.color)} />
+                    <span className="text-[10px] font-bold uppercase">{typeItem.value}</span>
                   </button>
                 ))}
               </div>
@@ -204,7 +215,7 @@ export function BroadcastTool() {
           </div>
           <Button 
             onClick={handleSend} 
-            disabled={loading || !formData.title || !formData.message}
+            disabled={loading || !formData.title || !formData.message || !canBroadcast}
             className="px-8 shadow-lg shadow-primary/20"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}

@@ -13,8 +13,16 @@ import { Button } from "@/components/ui/button";
 import { Shield } from "lucide-react";
 import { UserRolesDialog } from "./_component/user-roles-dialog";
 import { Badge } from "@/components/ui/badge";
+import { usePermission } from "@/lib/rbac/hooks/usePermission";
+import { useSession } from "@/hooks/use-session";
+import { PermissionAlert } from "@/components/common/permission-alert";
 
 export default function UsersPage() {
+  const { user: currentUser } = useSession();
+  const { allowed: canUpdate } = usePermission('user.update');
+  const isSuperAdmin = currentUser?.roles?.includes('super_admin');
+  const hasUpdateAccess = isSuperAdmin || canUpdate;
+
   const { data: users, isLoading, error, mutate } = useData<User[]>("users", () =>
     usersApi.getUsers()
   );
@@ -81,6 +89,7 @@ export default function UsersPage() {
               setSelectedUser(row.original);
               setDialogOpen(true);
             }}
+            disabled={!hasUpdateAccess}
           >
             <Shield className="mr-2 h-4 w-4" />
             Manage Roles
@@ -96,6 +105,12 @@ export default function UsersPage() {
         title="User Management"
         description="Kelola akun pengguna, berikan atau cabut hak akses role mereka dalam sistem."
       />
+
+      {!hasUpdateAccess && (
+        <PermissionAlert 
+          message="Anda tidak memiliki izin untuk mengelola role user. Silakan hubungi administrator untuk akses update user."
+        />
+      )}
 
       <DataLoader
         isLoading={isLoading}

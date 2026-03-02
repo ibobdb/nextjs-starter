@@ -9,13 +9,13 @@ import type { NavGroup } from './types';
 export const generalNav: NavGroup[] = [
   {
     label: 'Dashboard',
-    roles: ['super_admin', 'admin', 'manager'],
+    roles: ['super_admin', 'admin', 'user'],
     items: [
       {
         title: 'Default',
         url: '/dashboard/default',
         icon: Home,
-        roles: ['super_admin', 'admin', 'manager'],
+        roles: ['super_admin', 'admin', 'user'],
       },
     ],
   },

@@ -2,7 +2,7 @@
  * Standard utility for consistent API responses across all Next.js API Routes.
  */
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string;
   error?: string;
