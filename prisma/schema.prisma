@@ -175,6 +175,18 @@ model AppModule {
   @@map("app_module")
 }
 
+// ─── System Configuration ─────────────────────────────────────────────────────
+
+model SystemConfig {
+  key         String   @id     // e.g., "APP_NAME", "EMAIL_FROM"
+  value       String       
+  description String?      
+  isSecret    Boolean  @default(false) // If true, UI should mask it by default
+  updatedAt   DateTime @updatedAt
+  
+  @@map("system_config")
+}
+
 // ─── Background Task Tracking ────────────────────────────────────────────────
 
 enum TaskStatus {

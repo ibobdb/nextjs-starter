@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -83,6 +84,31 @@ async function main() {
   }
 
   console.log(`✅ super_admin mapped to ALL ${allPermissions.length} permissions`);
+  // ==========================
+  // 4. SYSTEM CONFIGURATION
+  // ==========================
+  const initialConfigs = [
+    { key: 'APP_NAME', value: process.env.APP_NAME || 'Trendscout Dashboard', description: 'Application Name', isSecret: false },
+    { key: 'APP_DESCRIPTION', value: process.env.APP_DESCRIPTION || 'A powerful DBStudio based platform', description: 'Application Description (SEO)', isSecret: false },
+    { key: 'COMPANY_NAME', value: process.env.COMPANY_NAME || 'Trendscout', description: 'Company Legal Name', isSecret: false },
+    { key: 'APP_URL', value: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000', description: 'Base Application URL', isSecret: false },
+    { key: 'LOGO_URL', value: process.env.LOGO_URL || '', description: 'Custom Logo Image URL', isSecret: false },
+    { key: 'EMAIL_FROM', value: process.env.EMAIL_FROM || 'onboarding@resend.dev', description: 'Default sender email address', isSecret: false },
+    { key: 'SUPPORT_EMAIL', value: process.env.SUPPORT_EMAIL || 'support@trendscout.ai', description: 'Contact/Support Email Address', isSecret: false },
+    { key: 'RESEND_API_KEY', value: process.env.RESEND_API_KEY || '', description: 'API Key for Resend email service', isSecret: true },
+  ];
+
+  for (const config of initialConfigs) {
+    if (config.value) {
+      await prisma.systemConfig.upsert({
+        where: { key: config.key },
+        update: {}, // Do not overwrite if it already exists
+        create: config,
+      });
+    }
+  }
+  console.log(`✅ System Configs seeded: ${initialConfigs.length}`);
+
   console.log('🌱 Seeding finished!');
 }
 

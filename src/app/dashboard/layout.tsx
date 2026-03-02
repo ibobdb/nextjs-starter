@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { NotificationProvider } from '@/lib/notification-package';
 import { RouteGuard } from '@/lib/rbac/components/RouteGuard';
+import { getSystemConfig } from '@/lib/config';
 
 export default async function DashboardLayout({
   children,
@@ -14,6 +15,8 @@ export default async function DashboardLayout({
 }>) {
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
+  
+  const appName = await getSystemConfig('APP_NAME', process.env.APP_NAME || 'DBStudio') as string;
 
   return (
     <ThemeProvider
@@ -25,7 +28,7 @@ export default async function DashboardLayout({
       <NotificationProvider>
         <RouteGuard />
         <SidebarProvider defaultOpen={defaultOpen}>
-          <AppSidebar />
+          <AppSidebar appName={appName} />
           <main className="flex flex-col w-full min-h-screen">
             <Toaster />
             <AppNavbar />

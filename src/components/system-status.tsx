@@ -2,14 +2,16 @@
 
 import { Server } from 'lucide-react';
 import Link from 'next/link';
+import { siteMetadata } from '@/config/meta';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SystemStatusProps {
   isCollapsed?: boolean;
+  appName?: string;
 }
 
-export function SystemStatus({ isCollapsed }: SystemStatusProps) {
+export function SystemStatus({ isCollapsed, appName = 'DBStudio Core' }: SystemStatusProps) {
   const content = (
     <div
       className={cn(
@@ -34,10 +36,10 @@ export function SystemStatus({ isCollapsed }: SystemStatusProps) {
       {!isCollapsed && (
         <div className="flex flex-col min-w-0 overflow-hidden text-left">
           <span className="text-[11px] font-medium text-foreground truncate leading-tight">
-            DBStudio Core v1.0.0
+            {appName} v{siteMetadata.version}
           </span>
           <span className="text-[10px] text-muted-foreground truncate leading-tight">
-            Environment: Production
+            Environment: {siteMetadata.environment || 'Production'}
           </span>
         </div>
       )}
@@ -54,8 +56,8 @@ export function SystemStatus({ isCollapsed }: SystemStatusProps) {
         </TooltipTrigger>
         {isCollapsed && (
           <TooltipContent side="right" className="flex flex-col gap-0.5 px-2 py-1.5">
-            <span className="text-[11px] font-semibold">DBStudio Core v1.0.0</span>
-            <span className="text-[10px] text-muted-foreground">Environment: Production</span>
+            <span className="text-[11px] font-semibold">{appName} v{siteMetadata.version}</span>
+            <span className="text-[10px] text-muted-foreground">Environment: {siteMetadata.environment || 'Production'}</span>
             <span className="text-[9px] text-green-500 font-medium mt-0.5">● Online</span>
           </TooltipContent>
         )}

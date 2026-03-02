@@ -1,21 +1,23 @@
 import 'dotenv/config';
 import { NextRequest } from 'next/server';
 import type { Resend } from 'resend';
+import { getSystemConfig } from '@/lib/config';
 
 // Prevent initialization during build time
-let resendInstance: Resend | null = null;
+let resendInstance: { client: Resend; key: string } | null = null;
 
 async function getResendInstance(): Promise<Resend> {
-  if (!resendInstance) {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      throw new Error('RESEND_API_KEY environment variable is not set');
-    }
-
-    const { Resend } = await import('resend');
-    resendInstance = new Resend(apiKey);
+  const apiKey = await getSystemConfig('RESEND_API_KEY', process.env.RESEND_API_KEY);
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY environment variable or setting is not set');
   }
-  return resendInstance;
+
+  // Re-instantiate if the key changes or is not yet initialized
+  if (!resendInstance || resendInstance.key !== apiKey) {
+    const { Resend } = await import('resend');
+    resendInstance = { client: new Resend(apiKey), key: apiKey };
+  }
+  return resendInstance.client;
 }
 
 export async function POST(request: NextRequest) {
@@ -31,9 +33,14 @@ export async function POST(request: NextRequest) {
     }
 
     const resend = await getResendInstance();
+    const defaultFrom = await getSystemConfig('EMAIL_FROM', process.env.EMAIL_FROM || process.env.EMAIL_USER);
+    const appName = await getSystemConfig('APP_NAME', process.env.APP_NAME || 'Trendscout Dashboard');
+    
+    // Formatting the email so it looks like "APP_NAME <EMAIL_FROM>"
+    const formattedDefaultFrom = `${appName} <${defaultFrom as string}>`;
 
     const { data, error } = await resend.emails.send({
-      from: from || `Sasuai Store <${process.env.EMAIL_USER}>`,
+      from: from || formattedDefaultFrom,
       to: [to],
       subject,
       html,

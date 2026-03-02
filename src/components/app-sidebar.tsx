@@ -80,7 +80,7 @@ function NavGroupGuard({
   return <>{children}</>;
 }
 
-export function AppSidebar() {
+export function AppSidebar({ appName = 'DB STUDIO' }: { appName?: string }) {
   const pathname = usePathname();
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
@@ -110,7 +110,7 @@ export function AppSidebar() {
             <Shell size={20} className="shrink-0" />
           ) : (
             <span className="font-bold text-foreground truncate space-x-7 text-xl">
-              DB STUDIO
+              {appName.toUpperCase()}
             </span>
           )}
         </div>
@@ -215,7 +215,7 @@ export function AppSidebar() {
           isCollapsed ? 'p-0 py-4 flex items-center justify-center' : 'p-4'
         )}
       >
-        <SystemStatus isCollapsed={isCollapsed} />
+        <SystemStatus isCollapsed={isCollapsed} appName={appName} />
       </SidebarFooter>
     </Sidebar>
   );

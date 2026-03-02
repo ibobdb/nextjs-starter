@@ -3,7 +3,7 @@
  * Grup navigasi untuk super_admin: user management dan access control.
  */
 
-import { User2, Users, ShieldCheck, Blocks, Megaphone } from 'lucide-react';
+import { User2, Users, ShieldCheck, Blocks, Megaphone, Settings } from 'lucide-react';
 import type { NavGroup } from './types';
 
 export const adminNav: NavGroup[] = [

@@ -2,7 +2,7 @@ export async function sendEmail({
   to,
   subject,
   html,
-  from = `Dashify <${process.env.EMAIL_FROM}>`,
+  from,
 }: {
   to: string;
   subject: string;

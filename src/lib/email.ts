@@ -1,7 +1,6 @@
 import { Resend } from 'resend';
 import { VerificationEmailTemplate } from '@/components/email-template';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { getSystemConfig } from '@/lib/config';
 
 interface SendVerificationEmailProps {
   to: string;
@@ -15,8 +14,17 @@ export async function sendVerificationEmail({
   userName,
 }: SendVerificationEmailProps) {
   try {
+    const apiKey = await getSystemConfig('RESEND_API_KEY', process.env.RESEND_API_KEY);
+    const fromAddress = await getSystemConfig('EMAIL_FROM', process.env.EMAIL_FROM || 'noreply@yourdomain.com');
+
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is not configured in settings or environment.');
+    }
+
+    const resend = new Resend(apiKey);
+
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'noreply@yourdomain.com',
+      from: fromAddress as string,
       to: [to],
       subject: 'Verifikasi Email Anda',
       react: VerificationEmailTemplate({

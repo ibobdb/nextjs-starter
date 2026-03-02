@@ -13,12 +13,16 @@ import { generalNav } from './nav/general';
 import { trendscoutNav } from './nav/trendscout';
 import { adminNav } from './nav/admin';
 import { labNav } from './nav/lab';
+import { systemNav } from './nav/system';
 
-export const items = [
+import type { NavGroup } from './nav/types';
+
+export const items: NavGroup[] = [
   ...generalNav,
   ...trendscoutNav,
   ...labNav,
   ...adminNav,
+  ...systemNav,
 ];
 
 // Re-export types untuk backward compat
