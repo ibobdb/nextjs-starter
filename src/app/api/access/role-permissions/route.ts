@@ -2,14 +2,20 @@ import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
 import { createApiResponse } from '@/lib/api-response';
+import { logger } from '@/lib/logger';
+
+const accessLogger = logger;
 
 // GET /api/access/role-permissions?roleId=1
 // List semua permissions yang dimiliki suatu role
 export async function GET(request: NextRequest) {
-  const guard = await apiGuard();
-  if (guard.error) return guard.error;
-
   const roleId = request.nextUrl.searchParams.get('roleId');
+  accessLogger.debug(`GET /api/access/role-permissions initiated for roleId: ${roleId}`);
+  const guard = await apiGuard();
+  if (guard.error) {
+    accessLogger.warn('GET /api/access/role-permissions - Unauthorized access attempt');
+    return guard.error;
+  }
   if (!roleId) {
     return NextResponse.json(createApiResponse(false, 'roleId is required'), { status: 400 });
   }

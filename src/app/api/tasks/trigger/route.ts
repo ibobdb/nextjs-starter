@@ -3,10 +3,17 @@ import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
 import { TaskStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
+import { logger } from '@/lib/logger';
+
+const taskLogger = logger;
 
 export async function POST(req: Request) {
+  taskLogger.debug('POST /api/tasks/trigger initiated');
   const guard = await apiGuard();
-  if (guard.error) return guard.error;
+  if (guard.error) {
+    taskLogger.warn('POST /api/tasks/trigger - Unauthorized access attempt');
+    return guard.error;
+  }
 
   const userId = guard.session.user.id;
 
@@ -15,6 +22,7 @@ export async function POST(req: Request) {
     const { action, title, ...payload } = body;
 
     if (!action) {
+      taskLogger.warn('POST /api/tasks/trigger - Missing action');
       return NextResponse.json({ success: false, message: 'Missing action' }, { status: 400 });
     }
 
@@ -47,6 +55,7 @@ export async function POST(req: Request) {
             data: { status: TaskStatus.RUNNING }
         });
 
+        taskLogger.info(`POST /api/tasks/trigger - Successfully initiated task ${task.id} for user ${userId}`);
         return NextResponse.json({ 
             success: true, 
             message: 'Test task successfully initiated', 
@@ -55,10 +64,11 @@ export async function POST(req: Request) {
         }, { status: 202 });
     }
 
+    taskLogger.warn(`POST /api/tasks/trigger - Invalid action: ${action}`);
     return NextResponse.json({ success: false, message: 'Invalid action for base project' }, { status: 400 });
 
   } catch (error: unknown) {
-    console.error("[TRIGGER_API_ERROR]:", error);
+    taskLogger.error(`POST /api/tasks/trigger - Internal error for user ${userId}`, error);
     return NextResponse.json(
       { success: false, error: 'Internal Server Error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

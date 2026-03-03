@@ -31,7 +31,10 @@ export async function sendEmail({
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`Email API error: ${errorData.error}`);
+      const errorMsg = typeof errorData.message === 'string' 
+        ? errorData.message 
+        : (errorData.error?.message || JSON.stringify(errorData.error || errorData));
+      throw new Error(`Email API error: ${errorMsg}`);
     }
 
     const result = await response.json();

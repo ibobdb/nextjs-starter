@@ -3,6 +3,9 @@ import { NextRequest } from 'next/server';
 import type { Resend } from 'resend';
 import { getSystemConfig } from '@/lib/config';
 import { createApiResponse } from '@/lib/api-response';
+import { logger } from '@/lib/logger';
+
+const mailLogger = logger;
 
 // Prevent initialization during build time
 let resendInstance: { client: Resend; key: string } | null = null;
@@ -22,11 +25,13 @@ async function getResendInstance(): Promise<Resend> {
 }
 
 export async function POST(request: NextRequest) {
+  mailLogger.debug('POST /api/mail initiated');
   try {
     const { to, subject, html, from } = await request.json();
 
     // Validate required fields
     if (!to || !subject || !html) {
+      mailLogger.warn('POST /api/mail - Missing required fields');
       return Response.json(
       createApiResponse(false, 'Missing required fields: to, subject, html'),
         { status: 400 }
@@ -48,11 +53,17 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      return Response.json({ error }, { status: 500 });
+      mailLogger.error('POST /api/mail - Resend error', error);
+      return Response.json(
+        createApiResponse(false, error.message || 'Failed to send email'),
+        { status: 500 }
+      );
     }
 
+    mailLogger.info(`POST /api/mail - Successfully sent email to ${to}`);
     return Response.json({ data });
   } catch (error) {
+    mailLogger.error('POST /api/mail - Internal error', error);
     if (error instanceof Error && error.message.includes('RESEND_API_KEY')) {
       return Response.json(
       createApiResponse(false, 'Email service not configured'),

@@ -3,10 +3,17 @@ import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
 import { getAllSystemConfigs } from '@/lib/config';
 import { revalidateTag } from 'next/cache';
+import { logger } from '@/lib/logger';
+
+const settingsLogger = logger;
 
 export async function GET() {
+  settingsLogger.debug('GET /api/settings initiated');
   const guard = await apiGuard('settings.read');
-  if (guard.error) return guard.error;
+  if (guard.error) {
+    settingsLogger.warn('GET /api/settings - Unauthorized access attempt');
+    return guard.error;
+  }
 
   try {
     const configs = await getAllSystemConfigs();
@@ -19,22 +26,28 @@ export async function GET() {
       return config;
     });
 
+    settingsLogger.info(`GET /api/settings - Successfully fetched ${safeConfigs.length} configuration items`);
     return NextResponse.json({ success: true, data: safeConfigs });
   } catch (error) {
-    console.error('Error fetching settings:', error);
+    settingsLogger.error('GET /api/settings - Error fetching settings', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function PUT(req: Request) {
+  settingsLogger.debug('PUT /api/settings initiated');
   const guard = await apiGuard('settings.update');
-  if (guard.error) return guard.error;
+  if (guard.error) {
+    settingsLogger.warn('PUT /api/settings - Unauthorized access attempt');
+    return guard.error;
+  }
 
   try {
     const body = await req.json();
     const { settings } = body;
 
     if (!Array.isArray(settings)) {
+      settingsLogger.warn('PUT /api/settings - Invalid payload format');
       return NextResponse.json({ success: false, error: 'Invalid payload format' }, { status: 400 });
     }
 
@@ -56,6 +69,7 @@ export async function PUT(req: Request) {
 
     if (updates.length > 0) {
       await prisma.$transaction(updates);
+      settingsLogger.info(`PUT /api/settings - Successfully updated ${updates.length} settings`);
     }
 
     // Revalidate Next.js cache so getSystemConfig returns fresh data
@@ -64,7 +78,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ success: true, message: 'Settings updated successfully' });
   } catch (error) {
-    console.error('Error updating settings:', error);
+    settingsLogger.error('PUT /api/settings - Error updating settings', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

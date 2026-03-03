@@ -1,6 +1,9 @@
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
+
+const userLogger = logger;
 
 interface MenuWithChildren {
   id: number;
@@ -11,9 +14,11 @@ interface MenuWithChildren {
 }
 
 export async function GET(req: Request) {
+  userLogger.debug('GET /api/menus initiated');
   const session = await auth.api.getSession({ headers: req.headers });
 
   if (!session) {
+    userLogger.warn('GET /api/menus - Unauthorized access attempt');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -21,84 +26,90 @@ export async function GET(req: Request) {
   const userPermissions = session.user.permissions || [];
   const isSuperAdmin = userRoles.includes('super_admin');
 
-  // Fetch all menus that user has roles for
-  // A group is visible if it matches the user's role OR its children match the role
-  const menus = await prisma.menu.findMany({
-    where: {
-      AND: [
-        { parentId: null },
-        {
-          OR: [
-            { roles: { some: { role: { name: { in: userRoles } } } } },
-            { 
-              children: { 
-                some: { 
-                  roles: { some: { role: { name: { in: userRoles } } } } 
+  try {
+    // Fetch all menus that user has roles for
+    // A group is visible if it matches the user's role OR its children match the role
+    const menus = await prisma.menu.findMany({
+      where: {
+        AND: [
+          { parentId: null },
+          {
+            OR: [
+              { roles: { some: { role: { name: { in: userRoles } } } } },
+              { 
+                children: { 
+                  some: { 
+                    roles: { some: { role: { name: { in: userRoles } } } } 
+                  } 
                 } 
-              } 
-            }
-          ]
-        }
-      ]
-    },
-    include: {
-      children: {
-        where: {
-          roles: {
-            some: {
-              role: {
-                name: {
-                  in: userRoles
+              }
+            ]
+          }
+        ]
+      },
+      include: {
+        children: {
+          where: {
+            roles: {
+              some: {
+                role: {
+                  name: {
+                    in: userRoles
+                  }
                 }
               }
             }
-          }
-        },
-        include: {
-          permission: true,
-          roles: {
-            include: {
-              role: true
+          },
+          include: {
+            permission: true,
+            roles: {
+              include: {
+                role: true
+              }
             }
+          },
+          orderBy: {
+            order: 'asc'
           }
         },
-        orderBy: {
-          order: 'asc'
+        permission: true,
+        roles: {
+          include: {
+            role: true
+          }
         }
       },
-      permission: true,
-      roles: {
-        include: {
-          role: true
-        }
+      orderBy: {
+        order: 'asc'
       }
-    },
-    orderBy: {
-      order: 'asc'
-    }
-  });
-
-  // Filter based on permissions if permissionId is present
-  const authorizedMenus = (menus as unknown as MenuWithChildren[]).filter(group => {
-    // Super-admin bypasses permission checks
-    if (isSuperAdmin) return true;
-
-    // If group has a permission requirement, check it
-    if (group.permission && !userPermissions.includes(group.permission.name)) {
-      return false;
-    }
-
-    // Filter children based on permissions
-    group.children = group.children.filter((item) => {
-      if (item.permission && !userPermissions.includes(item.permission.name)) {
-        return false;
-      }
-      return true;
     });
 
-    // Only show group if it has authorized children or a URL
-    return group.children.length > 0 || !!group.url;
-  });
+    // Filter based on permissions if permissionId is present
+    const authorizedMenus = (menus as unknown as MenuWithChildren[]).filter(group => {
+      // Super-admin bypasses permission checks
+      if (isSuperAdmin) return true;
 
-  return NextResponse.json(authorizedMenus);
+      // If group has a permission requirement, check it
+      if (group.permission && !userPermissions.includes(group.permission.name)) {
+        return false;
+      }
+
+      // Filter children based on permissions
+      group.children = group.children.filter((item) => {
+        if (item.permission && !userPermissions.includes(item.permission.name)) {
+          return false;
+        }
+        return true;
+      });
+
+      // Only show group if it has authorized children or a URL
+      return group.children.length > 0 || !!group.url;
+    });
+
+    userLogger.info(`GET /api/menus - Successfully fetched ${authorizedMenus.length} authorized menus for user ${session.user.id}`);
+    return NextResponse.json(authorizedMenus);
+  } catch (error) {
+    userLogger.error(`GET /api/menus - Error fetching for user ${session.user.id}`, error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }

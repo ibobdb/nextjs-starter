@@ -82,7 +82,7 @@ export default function NotificationsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeader
           title="Notifications"
-          description="View all system alerts and updates across DBStudio."
+          description="View all system alerts and updates across your DB STUDIO Dashboard."
         />
         <div className="flex items-center gap-2">
            <Button variant="outline" size="sm" onClick={handleMarkAllAsRead} className="gap-2">

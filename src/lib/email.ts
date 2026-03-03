@@ -1,6 +1,9 @@
 import { Resend } from 'resend';
 import { VerificationEmailTemplate } from '@/components/email-template';
 import { getSystemConfig } from '@/lib/config';
+import { logger } from './logger';
+
+const mailLogger = logger;
 
 interface SendVerificationEmailProps {
   to: string;
@@ -34,13 +37,14 @@ export async function sendVerificationEmail({
     });
 
     if (error) {
-      console.error('Error sending verification email:', error);
+      mailLogger.error('Error sending verification email', error);
       throw new Error('Failed to send verification email');
     }
 
+    mailLogger.info(`Verification email sent successfully to: ${to}`);
     return { success: true, data };
   } catch (error) {
-    console.error('Error in sendVerificationEmail:', error);
+    mailLogger.error(`Error in sendVerificationEmail to ${to}`, error);
     throw error;
   }
 }

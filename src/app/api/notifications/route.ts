@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
+import { logger } from '@/lib/logger';
+
+const notificationLogger = logger;
 
 export async function GET(req: NextRequest) {
+  notificationLogger.debug('GET /api/notifications initiated');
   const guard = await apiGuard();
-  if (guard.error) return guard.error;
+  if (guard.error) {
+    notificationLogger.warn('GET /api/notifications - Unauthorized access attempt');
+    return guard.error;
+  }
 
   const userId = guard.session.user.id;
   const searchParams = req.nextUrl.searchParams;
@@ -24,6 +31,7 @@ export async function GET(req: NextRequest) {
       prisma.notification.count({ where: { userId } })
     ]);
 
+    notificationLogger.info(`GET /api/notifications - Successfully fetched ${notifications.length} notifications for user ${userId}`);
     return NextResponse.json({ 
       success: true, 
       data: notifications,
@@ -35,6 +43,7 @@ export async function GET(req: NextRequest) {
       }
     });
   } catch (error: unknown) {
+    notificationLogger.error(`GET /api/notifications - Error fetching for user ${userId}`, error);
     return NextResponse.json(
       { success: false, error: 'Internal Server Error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

@@ -2,19 +2,25 @@ import { eventBus } from '@/lib/events';
 import { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { logger } from '@/lib/logger';
+
+const sseLogger = logger;
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  sseLogger.debug('GET /api/stream/events initiated');
   const session = await auth.api.getSession({
     headers: await headers()
   });
 
   if (!session?.user) {
+    sseLogger.warn('GET /api/stream/events - Unauthorized access attempt');
     return new Response('Unauthorized', { status: 401 });
   }
 
   const userId = session.user.id;
+  sseLogger.info(`GET /api/stream/events - User ${userId} connected to SSE`);
 
   const stream = new ReadableStream({
     start(controller) {
@@ -33,7 +39,7 @@ export async function GET(req: NextRequest) {
           try {
             controller.enqueue(`data: ${JSON.stringify(data)}\n\n`);
           } catch (e) {
-            console.error('SSE Error Enqueueing', e);
+            sseLogger.error(`SSE Error Enqueueing for user ${userId}`, e);
           }
         }
       };
@@ -41,6 +47,7 @@ export async function GET(req: NextRequest) {
       eventBus.on('system-event', onEvent);
 
       req.signal.addEventListener('abort', () => {
+        sseLogger.info(`GET /api/stream/events - User ${userId} disconnected (aborted)`);
         clearInterval(heartbeat);
         eventBus.off('system-event', onEvent);
       });

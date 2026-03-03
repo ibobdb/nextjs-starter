@@ -147,7 +147,7 @@ export function BroadcastTool() {
               <div className="relative">
                 <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input 
-                  placeholder="https://dbstudio.com/updates" 
+                  placeholder="https://dbstudio.io/updates" 
                   className="pl-9"
                   value={formData.actionUrl}
                   onChange={(e) => setFormData(prev => ({ ...prev, actionUrl: e.target.value }))}

@@ -177,11 +177,11 @@ async function main() {
 
     // 7. SYSTEM CONFIGURATION
     const initialConfigs = [
-      { key: 'APP_NAME', value: 'DBStudio Dashboard', description: 'Application Name', isSecret: false },
+      { key: 'APP_NAME', value: 'DB STUDIO Dashboard', description: 'Application Name', isSecret: false },
       { key: 'APP_DESCRIPTION', value: 'A powerful Next.js RBAC platform', description: 'Application Description (SEO)', isSecret: false },
-      { key: 'COMPANY_NAME', value: 'DBStudio', description: 'Company Legal Name', isSecret: false },
+      { key: 'COMPANY_NAME', value: 'DB STUDIO', description: 'Company Legal Name', isSecret: false },
       { key: 'APP_URL', value: 'http://localhost:3000', description: 'Base Application URL', isSecret: false },
-      { key: 'EMAIL_FROM', value: 'onboarding@resend.dev', description: 'Default sender email address', isSecret: false },
+      { key: 'EMAIL_FROM', value: 'noreply@ibobdb.com', description: 'Default sender email address', isSecret: false },
     ];
 
     for (const config of initialConfigs) {

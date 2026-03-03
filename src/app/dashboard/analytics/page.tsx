@@ -9,14 +9,14 @@ export default function AnalyticsStubPage() {
     <div className="space-y-6">
       <PageHeader
         title="Analytics Overview"
-        description="Pantau performa dan statistik penggunaan DBStudio."
+        description="Monitor the performance and usage statistics of your DB STUDIO Dashboard."
       />
 
       <div className="pt-12">
         <EmptyState
           icon={<BarChart3 className="h-12 w-12 text-muted-foreground/50" />}
           title="Coming Soon"
-          description="Halaman Analytics sedang dalam tahap pengembangan. Statistik akan tersedia di update berikutnya."
+          description="The Analytics page is currently under development. Statistics will be available in the next update."
         />
       </div>
     </div>

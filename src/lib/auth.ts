@@ -8,7 +8,12 @@ import {
 } from '@/utils/templates/';
 
 import { sendEmail } from '@/utils/resend';
+import { logger } from './logger';
+
 const prisma = new PrismaClient();
+const authLogger = logger;
+
+authLogger.info('Initializing Better Auth...');
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
@@ -17,7 +22,7 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 5,
     maxPasswordLength: 128,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
       try {
         await sendEmail({
@@ -63,6 +68,8 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   secret: process.env.BETTER_AUTH_SECRET,
   emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       try {
         await sendEmail({
@@ -71,6 +78,7 @@ export const auth = betterAuth({
           html: getVerificationEmailTemplate(url, user.name),
         });
       } catch (error) {
+        authLogger.error(`Failed to send verification email to ${user.email}`, error);
         throw error;
       }
     },

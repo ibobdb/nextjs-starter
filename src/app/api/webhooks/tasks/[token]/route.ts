@@ -3,19 +3,23 @@ import { NotificationType, TaskStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { eventBus } from "@/lib/events";
+import { logger } from "@/lib/logger";
+
+const taskLogger = logger;
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ token: string }> }
 ) {
+  const { token } = await params;
+  taskLogger.debug(`POST /api/webhooks/tasks/${token} initiated`);
   try {
-    const { token } = await params;
-    
     // IP-based Rate Limiting for Webhooks
     const ip = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "unknown-ip";
     // Strict limit: 60 requests per minute per IP/token combination to prevent spam
     const rl = rateLimit(`webhook_${token}_${ip}`, { limit: 60, windowMs: 60000 });
     if (!rl.isAllowed && rl.response) {
+      taskLogger.warn(`POST /api/webhooks/tasks/${token} - Rate limit exceeded from ${ip}`);
       return rl.response;
     }
     
@@ -24,6 +28,7 @@ export async function POST(
     try {
       body = await req.json();
     } catch {
+      taskLogger.warn(`POST /api/webhooks/tasks/${token} - Invalid JSON body`);
       return NextResponse.json({ success: false, message: "Invalid JSON body" }, { status: 400 });
     }
 
@@ -35,6 +40,7 @@ export async function POST(
     });
 
     if (!task) {
+      taskLogger.warn(`POST /api/webhooks/tasks/${token} - Task not found`);
       return NextResponse.json({ success: false, message: "Task not found" }, { status: 404 });
     }
 
@@ -89,9 +95,10 @@ export async function POST(
       eventBus.emit('system-event', { type: 'task-completed', userId: task.userId, taskId: task.id });
     }
 
+    taskLogger.info(`POST /api/webhooks/tasks/${token} - Task ${task.id} updated to ${finalStatus}`);
     return NextResponse.json({ success: true, status: finalStatus });
   } catch (err: unknown) {
-    console.error("[TASK_WEBHOOK_ERROR]:", err);
+    taskLogger.error(`POST /api/webhooks/tasks/${token} - Webhook Error`, err);
     return NextResponse.json(
       { success: false, error: "Internal Server Error", message: err instanceof Error ? err.message : "Unknown error" },
       { status: 500 }

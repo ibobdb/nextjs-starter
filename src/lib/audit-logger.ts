@@ -1,5 +1,8 @@
 import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
+import { logger } from "./logger";
+
+const auditLogger = logger;
 
 interface AuditLogPayload {
   action: string;
@@ -30,8 +33,9 @@ export async function logAudit(payload: AuditLogPayload) {
         userAgent,
       },
     });
+    auditLogger.info(`Audit log created: ${payload.action} on ${payload.entity}`);
   } catch (error) {
     // We swallow the error so that an audit logging failure doesn't break the main business logic
-    console.error("[AUDIT_LOG_ERROR] Failed to save audit log:", error);
+    auditLogger.error("[AUDIT_LOG_ERROR] Failed to save audit log", error);
   }
 }

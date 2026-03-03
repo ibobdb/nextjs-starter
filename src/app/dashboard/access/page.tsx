@@ -44,7 +44,7 @@ export default function AccessPage() {
         <PageHeader
           icon={ShieldCheck}
           title="Access Control"
-          description="Manage roles, permissions, and user access rights across the DBStudio system."
+          description="Manage roles, permissions, and user access rights across the DB STUDIO Dashboard system."
         />
         
         {isSuperAdmin && (

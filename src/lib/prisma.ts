@@ -1,7 +1,15 @@
 import { PrismaClient } from '@prisma/client';
+import { logger } from './logger';
 
 const prismaClientSingleton = () => {
-  return new PrismaClient();
+  const dbLogger = logger;
+  try {
+    dbLogger.info('Initializing Prisma Client...');
+    return new PrismaClient();
+  } catch (error) {
+    dbLogger.error('Failed to initialize Prisma Client', error);
+    throw error;
+  }
 };
 
 declare const globalThis: {

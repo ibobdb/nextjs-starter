@@ -2,6 +2,9 @@ import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
 import { createApiResponse } from '@/lib/api-response';
+import { logger } from '@/lib/logger';
+
+const userLogger = logger;
 
 // PUT /api/users/[id]/roles/batch
 // Replace all roles for a specific user
@@ -9,8 +12,12 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  userLogger.debug(`PUT /api/users/[id]/roles/batch initiated`);
   const guard = await apiGuard('user.update');
-  if (guard.error) return guard.error;
+  if (guard.error) {
+    userLogger.warn(`PUT /api/users/[id]/roles/batch - Unauthorized access attempt`);
+    return guard.error;
+  }
 
   try {
     const { roleIds } = await request.json();
@@ -45,9 +52,10 @@ export async function PUT(
       }
     });
 
+    userLogger.info(`PUT /api/users/${userId}/roles/batch - Successfully updated roles`);
     return NextResponse.json(createApiResponse(true, 'User roles updated successfully'));
   } catch (error: unknown) {
-    console.error('[BATCH_USER_ROLES_ERROR]', error);
+    userLogger.error(`PUT /api/users/[id]/roles/batch - Failed to update roles`, error);
     return NextResponse.json(
       createApiResponse(false, error instanceof Error ? error.message : 'Failed to update user roles'),
       { status: 500 }

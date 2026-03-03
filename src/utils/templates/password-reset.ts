@@ -74,7 +74,7 @@ export function getPasswordResetEmailTemplate(url: string, name?: string) {
           <p style="word-break: break-all; font-size: 14px;"><a href="${url}">${url}</a></p>
         </div>
         <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} Samunu Project. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} DB STUDIO Dashboard. All rights reserved.</p>
         </div>
       </div>
     </body>
