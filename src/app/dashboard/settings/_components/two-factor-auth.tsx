@@ -50,8 +50,9 @@ export function TwoFactorAuth() {
       if (error) throw new Error(error.message);
       
       toast.success('Two-Factor Authentication enabled successfully!');
-      if ((data as any)?.backupCodes) {
-        setBackupCodes((data as any).backupCodes);
+      const authData = data as { backupCodes?: string[] };
+      if (authData?.backupCodes) {
+        setBackupCodes(authData.backupCodes);
         setShowBackupCodes(true);
       }
       setTotpURI(null);

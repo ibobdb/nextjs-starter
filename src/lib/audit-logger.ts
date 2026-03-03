@@ -6,7 +6,7 @@ interface AuditLogPayload {
   entity: string;
   entityId?: string;
   userId?: string;
-  details?: any;
+  details?: unknown;
 }
 
 /**

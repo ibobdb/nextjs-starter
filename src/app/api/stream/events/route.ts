@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
         } catch {}
       }, 30000);
 
-      const onEvent = (data: { userId?: string, type: string, [key: string]: any }) => {
+      const onEvent = (data: { userId?: string, type: string, [key: string]: unknown }) => {
         // Broadcast to specific user or to everyone if no userId specified
         if (!data.userId || data.userId === userId || data.type === 'broadcast') {
           try {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { useTasks } from './useTasks';
 import { useNotifications } from './useNotifications';
 import { NotificationContextType } from './types';
@@ -19,9 +19,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     await Promise.all([refreshTasks(), refreshNotifications()]);
-  };
+  }, [refreshTasks, refreshNotifications]);
 
   useEffect(() => {
     let eventSource: EventSource | null = null;
@@ -53,7 +53,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       eventSource?.close();
       clearTimeout(retryTimeout);
     };
-  }, [refreshTasks, refreshNotifications]);
+  }, [refresh]);
 
   return (
     <NotificationContext.Provider

@@ -67,7 +67,7 @@ export function PermissionsTab() {
     <div className="space-y-4">
       <PageHeader
         title="Permissions"
-        description="Daftar semua permission yang tersedia. Dikelola via seed/admin."
+        description="List of all available permissions. Managed via seed/admin."
       />
 
       <AppTable
@@ -76,7 +76,7 @@ export function PermissionsTab() {
         isLoading={isLoading}
         error={error}
         onRetry={refetch}
-        emptyTitle="Belum ada permission"
+        emptyTitle="No permissions found"
         emptyIcon={<Key className="h-7 w-7 text-muted-foreground/60" />}
         skeletonRows={8}
       />

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
+import { Prisma } from '@prisma/client';
 
 export async function PUT(
   request: Request,
@@ -23,13 +24,13 @@ export async function PUT(
     });
 
     return NextResponse.json({ success: true, data: team });
-  } catch (error: any) {
-    if (error.code === 'P2025') {
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return NextResponse.json({ success: false, message: 'Team not found' }, { status: 404 });
     }
     console.error('[TEAMS_PUT_ERROR]', error);
     return NextResponse.json(
-      { success: false, error: 'Internal Server Error', message: error.message },
+      { success: false, error: 'Internal Server Error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -49,13 +50,13 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true, message: 'Team deleted successfully' });
-  } catch (error: any) {
-    if (error.code === 'P2025') {
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return NextResponse.json({ success: false, message: 'Team not found' }, { status: 404 });
     }
     console.error('[TEAMS_DELETE_ERROR]', error);
     return NextResponse.json(
-      { success: false, error: 'Internal Server Error', message: error.message },
+      { success: false, error: 'Internal Server Error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

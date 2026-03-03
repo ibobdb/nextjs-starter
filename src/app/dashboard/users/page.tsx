@@ -34,7 +34,7 @@ export default function UsersPage() {
   const columns: ColumnDef<User>[] = [
     {
       accessorKey: "name",
-      header: "Nama Lengkap",
+      header: "Full Name",
       cell: ({ row }) => (
         <div className="font-medium text-foreground">
           {row.original.name}
@@ -71,7 +71,7 @@ export default function UsersPage() {
     },
     {
       accessorKey: "createdAt",
-      header: "Tanggal Bergabung",
+      header: "Joined Date",
       cell: ({ row }) => {
         const date = new Date(row.original.createdAt);
         return format(date, "dd MMM yyyy");
@@ -103,12 +103,12 @@ export default function UsersPage() {
     <div className="space-y-6">
       <PageHeader
         title="User Management"
-        description="Kelola akun pengguna, berikan atau cabut hak akses role mereka dalam sistem."
+        description="Manage user accounts, assign or revoke their role permissions within the system."
       />
 
       {!hasUpdateAccess && (
         <PermissionAlert 
-          message="Anda tidak memiliki izin untuk mengelola role user. Silakan hubungi administrator untuk akses update user."
+          message="You do not have permission to manage user roles. Please contact an administrator for user update access."
         />
       )}
 

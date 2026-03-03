@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, Loader2, CheckCircle2, XCircle, Info } from 'lucide-react';
+import { Bell, CheckCircle2, XCircle, Info } from 'lucide-react';
 import { useNotificationSystem } from '@/lib/notification-package';
 import { 
   DropdownMenu, 

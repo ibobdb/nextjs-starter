@@ -13,8 +13,8 @@ const fontMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Dashify',
-  description: 'Modern dashboard for all your needs.',
+  title: 'DB STUDIO Dashboard',
+  description: 'Advanced RBAC Dashboard for Modern Web Applications.',
 };
 
 export default function RootLayout({

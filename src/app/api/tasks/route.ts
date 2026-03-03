@@ -24,9 +24,9 @@ export async function GET() {
 
     console.log(`[TASKS_API] Found ${tasks.length} active tasks for user ${userId}`);
     return NextResponse.json({ success: true, data: tasks });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: 'Internal Server Error', message: error.message },
+      { success: false, error: 'Internal Server Error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

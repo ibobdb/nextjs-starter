@@ -62,12 +62,12 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
     setIsUpdating(true);
     try {
       await usersApi.syncUserRoles(user.id, Array.from(selectedRoleIds));
-      toast.success("Role user berhasil diperbarui");
+      toast.success("User roles updated successfully");
       // Re-fetch daftar user untuk memperbarui tabel & dialog
       mutate("users");
       onOpenChange(false);
-    } catch (err: any) {
-      toast.error(err instanceof Error ? err.message : "Gagal mengupdate role user");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to update user roles");
     } finally {
       setIsUpdating(false);
     }
@@ -79,7 +79,7 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
         <DialogHeader>
           <DialogTitle>Manage Roles</DialogTitle>
           <DialogDescription>
-            Atur akses {user.name} ({user.email}) di dalam sistem.
+            Manage system access for {user.name} ({user.email}).
           </DialogDescription>
         </DialogHeader>
 
@@ -125,10 +125,10 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
         
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isUpdating}>
-            Batal
+            Cancel
           </Button>
           <Button onClick={handleSave} disabled={isUpdating || isLoading || !canUpdate}>
-            {isUpdating ? "Menyimpan..." : "Simpan"}
+            {isUpdating ? "Saving..." : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -32,11 +32,11 @@ import { authClient } from '@/lib/auth-client';
 import { toast } from 'sonner';
 
 const loginSchema = z.object({
-  email: z.string().email({ message: 'Email tidak valid' }),
+  email: z.string().email({ message: 'Invalid email address' }),
   password: z
     .string()
-    .min(8, { message: 'Password minimal 8 karakter' })
-    .max(128, { message: 'Password maksimal 128 karakter' }),
+    .min(8, { message: 'Password must be at least 8 characters' })
+    .max(128, { message: 'Password must not exceed 128 characters' }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -75,7 +75,7 @@ export function LoginForm() {
           onRequest: () => {
             setIsLoading(true);
           },
-          onSuccess: (ctx: any) => {
+          onSuccess: (ctx) => {
             if (ctx.data?.twoFactorRedirect) {
               setRequires2FA(true);
               setMessage({ type: '', text: '' });
@@ -83,10 +83,10 @@ export function LoginForm() {
               return;
             }
 
-            toast.success('Login berhasil!');
+            toast.success('Login successful!');
             setMessage({
               type: 'success',
-              text: 'Login berhasil! Mengalihkan...',
+              text: 'Login successful! Redirecting...',
             });
 
             setTimeout(() => {
@@ -95,16 +95,16 @@ export function LoginForm() {
             }, 500);
           },
           onError: (ctx) => {
-            toast.error(ctx.error.message || 'Login gagal!');
+            toast.error(ctx.error.message || 'Login failed!');
 
-            // Jika email belum terverifikasi (403)
+            // If email not verified (403)
             if (ctx.response.status === 403) {
               setMessage({
                 type: 'error',
                 text: (
-                  <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1">
                     <span>
-                      Email belum terverifikasi. Silakan periksa email Anda.
+                      Email not verified. Please check your inbox.
                     </span>
 
                     <Button
@@ -123,30 +123,30 @@ export function LoginForm() {
 
                           if (error?.message) {
                             toast.error(
-                              'Gagal mengirim ulang email verifikasi.'
+                              'Failed to resend verification email.'
                             );
                             return;
                           }
 
                           toast.success(
-                            'Email verifikasi telah dikirim ulang!'
+                            'Verification email has been resent!'
                           );
                           setMessage({
                             type: 'success',
-                            text: 'Email verifikasi sudah dikirim ulang. Silakan cek inbox.',
+                            text: 'Verification email sent. Please check your inbox.',
                           });
                         } catch (error) {
                           console.error(
                             'Error resending verification email:',
                             error
                           );
-                          toast.error('Gagal mengirim ulang email verifikasi.');
+                          toast.error('Failed to resend verification email.');
                         } finally {
                           setIsLoading(false);
                         }
                       }}
                     >
-                      Kirim Ulang
+                      Resend Email
                     </Button>
                   </div>
                 ),
@@ -154,7 +154,7 @@ export function LoginForm() {
             } else {
               setMessage({
                 type: 'error',
-                text: ctx.error.message || 'Email atau password salah.',
+                text: ctx.error.message || 'Invalid email or password.',
               });
             }
             setIsLoading(false);
@@ -163,10 +163,10 @@ export function LoginForm() {
       );
     } catch (error) {
       console.error('Unexpected error during login:', error);
-      toast.error('Terjadi kesalahan yang tidak terduga.');
+      toast.error('An unexpected error occurred.');
       setMessage({
         type: 'error',
-        text: 'Terjadi kesalahan yang tidak terduga.',
+        text: 'An unexpected error occurred.',
       });
       setIsLoading(false);
     }
@@ -174,13 +174,12 @@ export function LoginForm() {
 
   const handleVerify2FA = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!totpCode || totpCode.length !== 6) return toast.error('Format kode tidak valid');
+    if (!totpCode || totpCode.length !== 6) return toast.error('Invalid code format');
     
     setIsLoading(true);
     setMessage({ type: '', text: '' });
     
     try {
-      // @ts-ignore
       const { error } = await authClient.twoFactor.verifyTotp({
         code: totpCode,
         trustDevice: true,
@@ -188,21 +187,21 @@ export function LoginForm() {
       
       if (error) throw new Error(error.message);
       
-      toast.success('Verifikasi 2FA berhasil!');
+      toast.success('2FA verification successful!');
       setMessage({
         type: 'success',
-        text: 'Instruktional berhasil! Mengalihkan...',
+        text: 'Verification successful! Redirecting...',
       });
 
       setTimeout(() => {
         router.push(callbackUrl);
         router.refresh();
       }, 500);
-    } catch (error: any) {
-      toast.error(error.message || 'Kode 2FA tidak valid');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Invalid 2FA code');
       setMessage({
         type: 'error',
-        text: 'Kode verifikasi yang Anda masukkan salah atau kadaluarsa.',
+        text: 'The verification code you entered is invalid or expired.',
       });
       setIsLoading(false);
     }
@@ -212,15 +211,15 @@ export function LoginForm() {
     return (
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Verifikasi 2FA</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">2FA Verification</CardTitle>
           <CardDescription className="text-center">
-            Masukkan kode 6-digit dari aplikasi authenticator Anda
+            Enter the 6-digit code from your authenticator app
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleVerify2FA} className="space-y-4">
             <div className="space-y-2">
-              <Label>Kode Verifikasi</Label>
+              <Label>Verification Code</Label>
               <Input 
                 placeholder="000000" 
                 value={totpCode}
@@ -236,10 +235,10 @@ export function LoginForm() {
               </Alert>
             )}
             <Button type="submit" className="w-full mt-4" disabled={isLoading || totpCode.length !== 6}>
-              {isLoading ? 'Memverifikasi...' : 'Verifikasi'}
+              {isLoading ? 'Verifying...' : 'Verify'}
             </Button>
             <Button type="button" variant="ghost" className="w-full" onClick={() => setRequires2FA(false)} disabled={isLoading}>
-              Kembali ke Login
+              Back to Login
             </Button>
           </form>
         </CardContent>
@@ -252,7 +251,7 @@ export function LoginForm() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
         <CardDescription className="text-center">
-          Masukkan email dan password Anda untuk login
+          Enter your email and password to login
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -269,7 +268,7 @@ export function LoginForm() {
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="email"
-                        placeholder="nama@example.com"
+                        placeholder="name@example.com"
                         className="pl-10"
                         disabled={isLoading}
                         {...field}
@@ -321,7 +320,7 @@ export function LoginForm() {
                 href="/auth/forgot-password"
                 className="text-sm text-primary hover:underline"
               >
-                Lupa password?
+                Forgot password?
               </Link>
             </div>
 
@@ -341,12 +340,12 @@ export function LoginForm() {
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
-          Belum punya akun?{' '}
+          Don&apos;t have an account?{' '}
           <Link
             href="/auth/register"
             className="text-primary hover:underline font-medium"
           >
-            Daftar sekarang
+            Register now
           </Link>
         </p>
       </CardFooter>

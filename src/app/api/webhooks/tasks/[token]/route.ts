@@ -58,12 +58,12 @@ export async function POST(
     }
 
     // 3. Update task
-    const updatedTask = await prisma.task.update({
+    await prisma.task.update({
       where: { id: task.id },
       data: {
         status: finalStatus,
         metadata: {
-          ...(task.metadata as any || {}),
+          ...(task.metadata as Record<string, unknown> || {}),
           result: result || null,
           error: error || null,
           lastIncomingStatus: incomingStatus
@@ -81,7 +81,7 @@ export async function POST(
             ? "Proses latar belakang telah selesai dengan sukses." 
             : `Gagal: ${error || "Terjadi kesalahan saat pemrosesan."}`,
           type: notificationType,
-          actionUrl: task.metadata && (task.metadata as any).actionUrl ? (task.metadata as any).actionUrl : undefined,
+          actionUrl: task.metadata && (task.metadata as Record<string, unknown>).actionUrl ? String((task.metadata as Record<string, unknown>).actionUrl) : undefined,
         },
       });
 
@@ -90,10 +90,10 @@ export async function POST(
     }
 
     return NextResponse.json({ success: true, status: finalStatus });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[TASK_WEBHOOK_ERROR]:", err);
     return NextResponse.json(
-      { success: false, error: "Internal Server Error", message: err.message },
+      { success: false, error: "Internal Server Error", message: err instanceof Error ? err.message : "Unknown error" },
       { status: 500 }
     );
   }

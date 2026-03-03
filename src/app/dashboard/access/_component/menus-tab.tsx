@@ -6,13 +6,7 @@ import {
   Edit2, 
   Trash2, 
   GripVertical, 
-  ChevronRight, 
-  ChevronDown,
-  Layout,
-  ExternalLink,
-  Shield,
-  MoreVertical,
-  ChevronUp
+  Shield
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -21,6 +15,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragEndEvent
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -34,6 +29,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { 
   accessApi, 
   Menu, 
+  MenuInput,
   Role, 
   Permission 
 } from '@/services/access/api';
@@ -67,12 +63,6 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
 import { usePermission } from '@/lib/rbac/hooks/usePermission';
 import { useSession } from '@/hooks/use-session';
 import { PermissionAlert } from '@/components/common/permission-alert';
@@ -207,7 +197,7 @@ export function MenusTab() {
       ]);
       setRoles(rolesData.data);
       setPermissions(permsData.data.permissions);
-    } catch (error: any) {
+    } catch {
       toast.error('Failed to load roles/permissions');
     } finally {
       setIsLoading(false);
@@ -251,15 +241,15 @@ export function MenusTab() {
       toast.success('Menu deleted');
       mutate('/api/menus');
       mutateMenus();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete menu');
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const payload = {
+      const payload: MenuInput = {
         ...formData,
         parentId: formData.parentId ? parseInt(formData.parentId) : null,
         permissionId: (formData.permissionId && formData.permissionId !== 'none_perm') ? parseInt(formData.permissionId) : null,
@@ -275,8 +265,8 @@ export function MenusTab() {
       setIsDialogOpen(false);
       mutate('/api/menus');
       mutateMenus();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to save menu');
     }
   };
 
@@ -289,15 +279,20 @@ export function MenusTab() {
     }));
   };
 
-  const handleDragEnd = async (event: any) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    if (active.id !== over.id && menus) {
+    if (over && active.id !== over.id && menus) {
       const oldIndex = menus.findIndex(i => i.id === active.id);
       const newIndex = menus.findIndex(i => i.id === over.id);
       const newItems = arrayMove(menus, oldIndex, newIndex);
       
       newItems.forEach((item: Menu, index: number) => {
-        accessApi.updateMenu({ ...item, order: index, roles: item.roles.map((r: any) => r.role.id) });
+        const updatePayload: MenuInput = {
+          ...item,
+          order: index,
+          roles: item.roles.map(r => r.role.id)
+        };
+        accessApi.updateMenu(updatePayload);
       });
       
       mutate('/api/menus');
@@ -313,14 +308,14 @@ export function MenusTab() {
     <Card className="border-none shadow-none bg-transparent">
       {!hasManageAccess && (
         <PermissionAlert 
-          message="Anda tidak memiliki izin untuk mengelola struktur menu navigasi. Silakan hubungi administrator untuk akses manajemen menu."
+          message="You do not have permission to manage the navigation menu structure. Please contact an administrator for menu management access."
         />
       )}
       <CardHeader className="px-0 pt-0">
         <div className="flex justify-between items-end">
           <div>
             <CardTitle>Menu Navigation</CardTitle>
-            <CardDescription>Atur struktur sidebar dashboard secara dinamis berdasarkan role dan permission.</CardDescription>
+            <CardDescription>Dynamically manage the dashboard sidebar structure based on roles and permissions.</CardDescription>
           </div>
           {hasManageAccess && (
             <Button onClick={() => handleOpenAdd()} size="sm" className="gap-2">
@@ -389,7 +384,7 @@ export function MenusTab() {
             <DialogHeader>
               <DialogTitle>{editingMenu ? 'Edit Menu' : 'Add Menu'}</DialogTitle>
               <DialogDescription>
-                {formData.parentId ? 'Menambahkan item ke dalam group.' : 'Menambahkan group navigasi baru.'}
+                {formData.parentId ? 'Adding item to a group.' : 'Adding a new navigation group.'}
               </DialogDescription>
             </DialogHeader>
 

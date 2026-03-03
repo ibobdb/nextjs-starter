@@ -56,7 +56,6 @@ import { ErrorState } from '@/components/common/error-state';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 interface PaginationProps {
@@ -107,6 +106,7 @@ export function AppTable<TData>({
   skeletonRows = 5,
   className,
 }: AppTableProps<TData>) {
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

@@ -6,7 +6,7 @@ export interface Task {
   externalJobId?: string | null;
   title: string;
   status: TaskStatus;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   createdAt: string; // From API JSON
   updatedAt: string;
 }

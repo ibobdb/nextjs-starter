@@ -1,22 +1,22 @@
 /**
  * lib/api-guard.ts — Server-side API Route Guard (DBStudio Base)
  *
- * Helper reusable untuk melindungi API routes dengan session dan permission check.
- * Gunakan di semua route yang perlu proteksi, terutama POST/PUT/DELETE.
+ * Reusable helper to protect API routes with session and permission checks.
+ * Use in all routes that require protection, especially POST/PUT/DELETE.
  *
- * @example Session check saja (user harus login)
+ * @example Session check only (user must be logged in)
  * export async function GET() {
  *   const guard = await apiGuard();
  *   if (guard.error) return guard.error;
- *   // ... lanjut logic
+ *   // ... continue logic
  * }
  *
- * @example Dengan permission check
+ * @example With permission check
  * export async function POST() {
  *   const guard = await apiGuard('user.write');
  *   if (guard.error) return guard.error;
- *   const { session } = guard; // session tersedia
- *   // ... lanjut logic
+ *   const { session } = guard; // session is available
+ *   // ... continue logic
  * }
  */
 
@@ -46,11 +46,11 @@ type GuardFailure = {
 type GuardResult = GuardSuccess | GuardFailure;
 
 /**
- * Guard API route dengan session check + optional permission check.
+ * Guard API route with session check + optional permission check.
  *
- * @param requiredPermission - Jika diisi, user harus memiliki permission ini.
- *   Bisa string tunggal atau array (any match = allowed).
- * @returns GuardResult — cek `.error` terlebih dahulu sebelum mengakses `.session`
+ * @param requiredPermission - If provided, user must have this permission.
+ *   Can be a single string or an array (any match = allowed).
+ * @returns GuardResult — check `.error` first before accessing `.session`
  */
 export async function apiGuard(
   requiredPermission?: string | string[]
@@ -81,7 +81,7 @@ export async function apiGuard(
     };
   }
 
-  // 3. Permission check (jika diminta)
+  // 3. Permission check (if requested)
   if (requiredPermission) {
     const userRoles: string[] = user.roles ?? [];
     const isSuperAdmin = userRoles.includes('super_admin');

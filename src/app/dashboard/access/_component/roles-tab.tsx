@@ -61,12 +61,12 @@ export function RolesTab() {
     setCreating(true);
     try {
       await accessApi.createRole(newRoleName);
-      toast.success(`Role "${newRoleName}" berhasil dibuat`);
+      toast.success(`Role "${newRoleName}" created successfully`);
       setNewRoleName('');
       setShowCreate(false);
       refetch();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Gagal membuat role');
+      toast.error(e instanceof Error ? e.message : 'Failed to create role');
     } finally {
       setCreating(false);
     }
@@ -77,11 +77,11 @@ export function RolesTab() {
     setDeleting(true);
     try {
       await accessApi.deleteRole(deleteTarget.id);
-      toast.success(`Role "${deleteTarget.name}" dihapus`);
+      toast.success(`Role "${deleteTarget.name}" deleted`);
       setDeleteTarget(null);
       refetch();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Gagal menghapus role');
+      toast.error(e instanceof Error ? e.message : 'Failed to delete role');
     } finally {
       setDeleting(false);
     }
@@ -145,20 +145,18 @@ export function RolesTab() {
 
   return (
     <div className="space-y-4">
-      {!hasCreateAccess && !hasDeleteAccess && (
         <PermissionAlert 
-          message="Anda tidak memiliki izin untuk mengelola (tambah/hapus) role. Silakan hubungi administrator untuk akses manajemen role."
+          message="You do not have permission to manage (add/delete) roles. Please contact an administrator for role management access."
         />
-      )}
 
       <PageHeader
         title="Roles"
-        description="Kelola role yang tersedia di sistem."
+        description="Manage available roles in the system."
         actions={
           hasCreateAccess && (
             <Button size="sm" className="gap-2" onClick={() => setShowCreate(true)}>
               <Plus className="h-3.5 w-3.5" />
-              Tambah Role
+              Add Role
             </Button>
           )
         }
@@ -170,8 +168,8 @@ export function RolesTab() {
         isLoading={isLoading}
         error={error}
         onRetry={refetch}
-        emptyTitle="Belum ada role"
-        emptyDescription="Tambahkan role pertama untuk memulai."
+        emptyTitle="No roles yet"
+        emptyDescription="Add your first role to get started."
         emptyIcon={<Shield className="h-7 w-7 text-muted-foreground/60" />}
       />
 
@@ -179,26 +177,26 @@ export function RolesTab() {
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Tambah Role Baru</DialogTitle>
+            <DialogTitle>Add New Role</DialogTitle>
           </DialogHeader>
           <div className="space-y-1 py-2">
             <Input
-              placeholder="Nama role, e.g. editor"
+              placeholder="Role name, e.g. editor"
               value={newRoleName}
               onChange={(e) => setNewRoleName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
               autoFocus
             />
             <p className="text-xs text-muted-foreground">
-              Spasi akan diubah menjadi underscore.
+              Spaces will be converted to underscores.
             </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreate(false)}>
-              Batal
+              Cancel
             </Button>
             <Button onClick={handleCreate} disabled={creating || !newRoleName.trim()}>
-              {creating ? 'Membuat...' : 'Buat Role'}
+              {creating ? 'Creating...' : 'Create Role'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -208,19 +206,19 @@ export function RolesTab() {
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus role &ldquo;{deleteTarget?.name}&rdquo;?</AlertDialogTitle>
+            <AlertDialogTitle>Delete role &ldquo;{deleteTarget?.name}&rdquo;?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tindakan ini tidak bisa dibatalkan. Semua user dengan role ini akan kehilangan role tersebut.
+              This action cannot be undone. All users with this role will lose it.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleting ? 'Menghapus...' : 'Hapus'}
+              {deleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

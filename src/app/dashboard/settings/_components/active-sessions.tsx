@@ -7,18 +7,24 @@ import { Loader2, Monitor, Smartphone, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 
+interface BrowserSession {
+  token: string;
+  userAgent?: string | null;
+  ipAddress?: string | null;
+  updatedAt: string | Date;
+}
+
 export function ActiveSessions() {
   const { data: sessionData } = useSession();
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<BrowserSession[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchSessions = async () => {
     try {
-      // @ts-ignore - plugin methods might not be perfectly typed depending on setup
       const { data, error } = await authClient.listSessions();
       if (error) throw new Error(error.message);
       if (data) setSessions(data);
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to load active sessions');
     } finally {
       setLoading(false);
@@ -35,8 +41,8 @@ export function ActiveSessions() {
       if (error) throw new Error(error.message);
       toast.success('Session revoked successfully');
       fetchSessions();
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to revoke session');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to revoke session');
     }
   };
 

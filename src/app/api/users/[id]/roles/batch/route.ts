@@ -46,10 +46,10 @@ export async function PUT(
     });
 
     return NextResponse.json(createApiResponse(true, 'User roles updated successfully'));
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[BATCH_USER_ROLES_ERROR]', error);
     return NextResponse.json(
-      createApiResponse(false, 'Failed to update user roles'),
+      createApiResponse(false, error instanceof Error ? error.message : 'Failed to update user roles'),
       { status: 500 }
     );
   }

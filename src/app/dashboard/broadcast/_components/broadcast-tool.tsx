@@ -16,14 +16,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 
@@ -107,7 +99,7 @@ export function BroadcastTool() {
       {!canBroadcast && (
         <div className="px-6 pt-6">
           <PermissionAlert 
-            message="Anda tidak memiliki izin untuk mengirim broadcast. Fitur ini hanya tersedia untuk administrator dengan izin broadcast.create."
+            message="You do not have permission to send broadcasts. This feature is only available to administrators with the broadcast.create permission."
           />
         </div>
       )}

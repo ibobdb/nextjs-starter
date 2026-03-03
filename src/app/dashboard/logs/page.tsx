@@ -4,20 +4,15 @@ import { useState } from "react";
 import { formatDistanceToNow, format } from "date-fns";
 import { 
   ShieldAlert, 
-  Loader2, 
-  Search,
-  Filter,
-  User,
-  Activity,
-  Globe,
+  User, 
+  Activity, 
+  Globe, 
   Database
 } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { AppTable } from "@/components/common/app-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -25,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAuditLogs } from "@/hooks/use-audit-logs";
+import { useAuditLogs, type AuditLog } from "@/hooks/use-audit-logs";
 import { cn } from "@/lib/utils";
 
 export default function AuditLogsPage() {
@@ -46,7 +41,7 @@ export default function AuditLogsPage() {
     return "bg-slate-500/10 text-slate-600 border-slate-200/20";
   };
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<AuditLog>[] = [
     {
       accessorKey: "createdAt",
       header: "Timestamp",

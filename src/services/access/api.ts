@@ -85,8 +85,8 @@ export const accessApi = {
   getMenus(): Promise<Menu[]> {
     return fetch('/api/admin/menus').then(handleRes<Menu[]>);
   },
-
-  createMenu(data: Partial<Menu>): Promise<Menu> {
+  
+  createMenu(data: MenuInput): Promise<Menu> {
     return fetch('/api/admin/menus', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -94,7 +94,7 @@ export const accessApi = {
     }).then(handleRes<Menu>);
   },
 
-  updateMenu(data: Partial<Menu>): Promise<Menu> {
+  updateMenu(data: MenuInput): Promise<Menu> {
     return fetch('/api/admin/menus', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -120,5 +120,16 @@ export interface Menu {
   permission?: Permission;
   roles: { role: Role }[];
   children?: Menu[];
+}
+
+export interface MenuInput {
+  id?: number;
+  title: string;
+  url?: string | null;
+  icon?: string | null;
+  order?: number;
+  parentId?: number | null;
+  permissionId?: number | null;
+  roles?: number[];
 }
 

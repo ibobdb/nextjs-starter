@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const actionFilter = searchParams.get('action');
     const entityFilter = searchParams.get('entity');
 
-    const whereClause: any = {};
+    const whereClause: Record<string, string> = {};
     if (actionFilter) whereClause.action = actionFilter;
     if (entityFilter) whereClause.entity = entityFilter;
 
@@ -50,10 +50,10 @@ export async function GET(request: Request) {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[AUDIT_LOG_GET_ERROR]', error);
     return NextResponse.json(
-      { success: false, error: 'Internal Server Error', message: error.message },
+      { success: false, error: 'Internal Server Error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

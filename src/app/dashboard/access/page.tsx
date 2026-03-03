@@ -31,8 +31,8 @@ export default function AccessPage() {
       toast.success(data.message);
       // Wait a moment then refresh to update the tabs
       setTimeout(() => window.location.reload(), 1000);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsSyncing(false);
     }
@@ -44,7 +44,7 @@ export default function AccessPage() {
         <PageHeader
           icon={ShieldCheck}
           title="Access Control"
-          description="Kelola roles, permissions, dan hak akses user di seluruh sistem DBStudio."
+          description="Manage roles, permissions, and user access rights across the DBStudio system."
         />
         
         {isSuperAdmin && (

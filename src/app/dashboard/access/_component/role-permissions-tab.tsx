@@ -113,11 +113,11 @@ export function RolePermissionsTab() {
     
     try {
       await accessApi.syncRolePermissions(selectedRoleId, Array.from(assignedIds));
-      toast.success("Permissions berhasil diperbarui");
+      toast.success("Permissions updated successfully");
       setHasChanges(false);
       refetchAssigned();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Gagal mengubah permission');
+      toast.error(e instanceof Error ? e.message : 'Failed to change permissions');
     } finally {
       setIsSaving(false);
     }
@@ -131,12 +131,12 @@ export function RolePermissionsTab() {
     <div className="space-y-5">
       <PageHeader
         title="Role Permissions"
-        description="Pilih role, lalu atur permission yang dimilikinya."
+        description="Select a role, then manage its assigned permissions."
       />
 
       {!hasUpdateAccess && (
         <PermissionAlert 
-          message="Anda tidak memiliki izin untuk mengubah pemetaan permission ke role. Silakan hubungi administrator untuk akses update permission."
+          message="You do not have permission to change permission mappings to roles. Please contact an administrator for permission update access."
         />
       )}
 
@@ -151,7 +151,7 @@ export function RolePermissionsTab() {
               onValueChange={(v) => setSelectedRoleId(Number(v))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Pilih role..." />
+                <SelectValue placeholder="Select role..." />
               </SelectTrigger>
               <SelectContent>
                 {roles.map((r) => (
@@ -176,7 +176,7 @@ export function RolePermissionsTab() {
                 }}
                 disabled={isSaving}
               >
-                Batal
+                Cancel
               </Button>
             )}
             <Button 
@@ -185,7 +185,7 @@ export function RolePermissionsTab() {
               className="gap-2"
             >
               {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isSaving ? "Menyimpan..." : "Save Changes"}
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         )}
@@ -195,8 +195,8 @@ export function RolePermissionsTab() {
       {!selectedRoleId && (
         <EmptyState
           icon={<ShieldCheck className="h-7 w-7 text-muted-foreground/60" />}
-          title="Pilih role terlebih dahulu"
-          description="Permissions akan tampil setelah memilih role di atas."
+          title="Select a role first"
+          description="Permissions will appear after selecting a role above."
         />
       )}
 
@@ -211,11 +211,11 @@ export function RolePermissionsTab() {
       {selectedRoleId && !isLoading && (
         <div className="space-y-5">
           <p className="text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">{assignedIds.size}</span> dari{' '}
+            <span className="font-semibold text-foreground">{assignedIds.size}</span> of{' '}
             <span className="font-semibold text-foreground">
               {permData?.permissions.length ?? 0}
             </span>{' '}
-            permissions aktif untuk role{' '}
+            permissions active for role{' '}
             <code className="bg-muted px-1 py-0.5 rounded">{selectedRole?.name}</code>
           </p>
 
@@ -245,7 +245,7 @@ export function RolePermissionsTab() {
                         className="text-[10px] uppercase font-semibold cursor-pointer text-muted-foreground hover:text-foreground transition-colors border rounded px-1.5 py-0.5 flex items-center select-none"
                         onClick={() => handleToggleModule(module, !isAllSelected)}
                       >
-                        {isAllSelected ? 'Kosongkan' : 'Pilih Semua'}
+                        {isAllSelected ? 'Deselect All' : 'Select All'}
                       </div>
                     )}
                   </div>

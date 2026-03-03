@@ -57,10 +57,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: false, message: 'Invalid action for base project' }, { status: 400 });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[TRIGGER_API_ERROR]:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal Server Error', message: error.message },
+      { success: false, error: 'Internal Server Error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

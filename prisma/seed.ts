@@ -201,7 +201,22 @@ async function main() {
     await tx.menuRole.deleteMany();
     await tx.menu.deleteMany();
     
-    const menuGroups = [
+    interface MenuItemSeed {
+      title: string;
+      url: string;
+      icon: string;
+      roles: string[];
+      permission?: string;
+    }
+
+    interface MenuGroupSeed {
+      label: string;
+      roles: string[];
+      permission?: string;
+      items: MenuItemSeed[];
+    }
+
+    const menuGroups: MenuGroupSeed[] = [
       {
         label: 'Dashboard',
         roles: ['super_admin', 'admin', 'user'],

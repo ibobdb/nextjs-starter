@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import prisma from '@/lib/prisma';
 
-export async function GET(request: Request) {
+export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
   
   // also fetch a raw user to see if it has roles

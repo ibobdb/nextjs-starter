@@ -54,14 +54,14 @@ export function SettingsForm() {
       } else {
         toast.error(res.error || 'Failed to update settings');
       }
-    } catch (e: unknown) {
+    } catch {
       toast.error('An unexpected error occurred');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const getFormGroup = (keys: string[], title: string, description: string, Icon: React.ComponentType<any>) => {
+  const getFormGroup = (keys: string[], title: string, description: string, Icon: React.ComponentType<{ size?: number; className?: string }>) => {
     if (!data) return null;
     const items = data.filter(d => keys.includes(d.key));
     if (items.length === 0) return null;

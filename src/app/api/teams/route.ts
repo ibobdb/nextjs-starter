@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const guard = await apiGuard(['super_admin', 'admin', 'team.read']);
     if (guard.error) return guard.error;
@@ -18,10 +18,10 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json({ success: true, data: teams });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[TEAMS_GET_ERROR]', error);
     return NextResponse.json(
-      { success: false, error: 'Internal Server Error', message: error.message },
+      { success: false, error: 'Internal Server Error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -55,10 +55,10 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, data: team }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[TEAMS_POST_ERROR]', error);
     return NextResponse.json(
-      { success: false, error: 'Internal Server Error', message: error.message },
+      { success: false, error: 'Internal Server Error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

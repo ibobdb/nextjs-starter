@@ -81,8 +81,8 @@ export default function TeamsPage() {
       setIsCreateOpen(false);
       setNewTeam({ name: "", description: "" });
       mutate();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to create team");
     } finally {
       setIsSubmitting(false);
     }
@@ -96,8 +96,8 @@ export default function TeamsPage() {
       
       toast.success("Team deleted explicitly");
       mutate();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete team');
     } finally {
       setDeleteId(null);
     }
@@ -118,11 +118,9 @@ export default function TeamsPage() {
         )}
       </div>
 
-      {!hasWriteAccess && (
         <PermissionAlert 
-          message="Anda tidak memiliki izin untuk mengelola (buat/hapus) tim. Silakan hubungi administrator untuk akses manajemen tim."
+          message="You do not have permission to manage (create/delete) teams. Please contact an administrator for team management access."
         />
-      )}
 
       {isLoading ? (
         <DataLoader isLoading={true} skeletonVariant="spinner" />

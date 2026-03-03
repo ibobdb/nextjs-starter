@@ -66,8 +66,8 @@ export async function POST(req: NextRequest) {
       count: targetUserIds.length 
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[BROADCAST_ERROR]', error);
-    return NextResponse.json({ success: false, message: error.message || 'Failed to send broadcast' }, { status: 500 });
+    return NextResponse.json({ success: false, message: error instanceof Error ? error.message : 'Failed to send broadcast' }, { status: 500 });
   }
 }

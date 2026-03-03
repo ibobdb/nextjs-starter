@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,34 @@ export function CallbackTester() {
   const [progress, setProgress] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
 
+  const simulateWebhook = useCallback(async (status: 'COMPLETED' | 'FAILED') => {
+    if (!triggerResult) return;
+    setSimulating(true);
+    try {
+      await axios.post(triggerResult.callbackUrl, {
+        status,
+        result: {
+          message: `Simulation of ${status} after ${duration}s`,
+          completedAt: new Date().toISOString()
+        }
+      });
+      toast.success(`Task marked as ${status}`);
+      setTriggerResult(null); // Clear after completion
+      setProgress(0);
+      setTimeLeft(0);
+    } catch {
+      toast.error('Webhook simulation failed');
+    } finally {
+      setSimulating(false);
+    }
+  }, [triggerResult, duration]);
+
+  const autoComplete = useCallback(() => {
+    if (triggerResult) {
+       simulateWebhook(triggerResult.status === 'test-success' ? 'COMPLETED' : 'FAILED');
+    }
+  }, [triggerResult, simulateWebhook]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timeLeft > 0) {
@@ -50,7 +78,7 @@ export function CallbackTester() {
       }, 100);
     }
     return () => clearInterval(interval);
-  }, [timeLeft, triggerResult, duration]);
+  }, [timeLeft, triggerResult, duration, autoComplete]);
 
   useEffect(() => {
     if (timeLeft > 0 && duration > 0) {
@@ -61,12 +89,6 @@ export function CallbackTester() {
         setProgress(0);
     }
   }, [timeLeft, duration, triggerResult]);
-
-  const autoComplete = () => {
-    if (triggerResult) {
-       simulateWebhook(triggerResult.status === 'test-success' ? 'COMPLETED' : 'FAILED');
-    }
-  };
 
   const triggerTask = async (action: 'test-success' | 'test-failure') => {
     setLoading(true);
@@ -112,27 +134,6 @@ export function CallbackTester() {
     }
   };
 
-  const simulateWebhook = async (status: 'COMPLETED' | 'FAILED') => {
-    if (!triggerResult) return;
-    setSimulating(true);
-    try {
-      await axios.post(triggerResult.callbackUrl, {
-        status,
-        result: {
-          message: `Simulation of ${status} after ${duration}s`,
-          completedAt: new Date().toISOString()
-        }
-      });
-      toast.success(`Task marked as ${status}`);
-      setTriggerResult(null); // Clear after completion
-      setProgress(0);
-      setTimeLeft(0);
-    } catch (error: unknown) {
-      toast.error('Webhook simulation failed');
-    } finally {
-      setSimulating(false);
-    }
-  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);

@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { title, url, icon, order, parentId, permissionId, roles } = body;
 
-    const menu = await prisma.$transaction(async (tx: any) => {
+    const menu = await prisma.$transaction(async (tx) => {
       const newMenu = await tx.menu.create({
         data: {
           title,
@@ -93,8 +93,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(menu);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 400 });
   }
 }
 
@@ -107,7 +107,7 @@ export async function PUT(req: Request) {
     const body = await req.json();
     const { id, title, url, icon, order, parentId, permissionId, roles } = body;
 
-    const menu = await prisma.$transaction(async (tx: any) => {
+    const menu = await prisma.$transaction(async (tx) => {
       const updatedMenu = await tx.menu.update({
         where: { id },
         data: {
@@ -158,8 +158,8 @@ export async function PUT(req: Request) {
     });
 
     return NextResponse.json(menu);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 400 });
   }
 }
 
@@ -181,7 +181,7 @@ export async function DELETE(req: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 400 });
   }
 }

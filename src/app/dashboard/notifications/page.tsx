@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { 
-  Bell, 
-  Loader2, 
-  CheckCircle2, 
-  XCircle, 
+  Bell,
+  CheckCircle2,
+  XCircle,
   Info,
   Trash2,
   Check,

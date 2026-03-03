@@ -26,11 +26,14 @@ DB STUDIO bertindak sebagai orkestrator (*API Gateway / Frontend Gateway*) yang 
 Saat ini sebagai fondasi platform "Super-App" tim internal, DB STUDIO telah diperlengkapi dengan berbagai modul "Base" berstandar korporat yang kokoh:
 - **Sistem Autentikasi Mutakhir & Super Aman**: Dukungan Login tradisional, opsi tanpa kata sandi via WebAuthn (Passkeys), Autentikasi Dua Faktor (2FA authenticator apps), manajemen sesi perangkat aktif, dan fitur *Force Logout* multi-divisi dari dasbor kendali.
 - **Hierarki Keamanan Granular (RBAC API Guard & Route Guard)**: Modul kontrol akses yang sangat bisa disesuaikan. Izin akses tidak terbatas hanya pada "Jabatan User" (Sistem Role), namun diturunkan secara kaku ke hak fungsi tindakan individual (Permissions seperti `user.read`, `settings.update`, `admin.read`).
-- **Dynamic System Configuration**: Pengaturan global identitas instansi (APP_NAME, Deskripsi Meta, Logo URL, Email Keys) ditarik dinamis dari basis data dan bisa divariasikan lansgung dari UI Dasbor (*White-label ready*).
-- **Core Entity Management**: Manajemen komprehensif profil internal staff, pemisahan tim organisasi (Teams), dan pemantauan pergerakan peran pengguna.
-- **Background Task Monitor Center**: Infrastruktur antar-muka (*Active Tasks Center*) asinkronus untuk mendengarkan lalu lintas permintaan (request) berat API (*polling HTTP 202*) ke latar belakang dan memberikan laporan balik ping status berhasil/mati kepada agen tanpa menyebabkan tab jendela *browser freezes/hang*.
-- **Sistem Sentral Webhook (Symphony API)**: Terdapat pusaran *endpoint* Webhook Listener di (`/api/webhooks/tasks/`) yang telah aktif beroperasi penuh untuk menelan *Payload Callbacks* eksternal dari berbagai Worker secara asinkron.
-- **Global Audit Logs & Telemetri Interaktif**: Infrastruktur *logging* di bawah model `AuditLog` sudah siap memotret rekam jejak mutasi data dan otorisasi API krusial oleh *Staff*, merekam detail pengguna, IP, hingga modifikasi Payload secara transparan (*Compliance Ready*).
+- **Dynamic System Configuration & Navigation**: Pengaturan global identitas instansi ditarik dinamis. Dilengkapi dengan **Admin Menu Manager** untuk mengatur struktur sidebar, ikon Lucide, dan hak akses menu secara visual langsung dari dashboard tanpa menyentuh kode.
+- **Hierarki Keamanan Granular (RBAC API Guard & Route Guard)**: Modul kontrol akses tingkat tinggi. Hak fungsi tindakan individual (Permissions) diintegrasikan secara global ke UI menggunakan `usePermission` hook dan komponen `PermissionAlert`.
+- **Core Entity & Team Management**: Manajemen komprehensif profil internal staff dan pemisahan organisasi (Teams).
+- **System Broadcast Center**: Memungkinkan administrator mengirimkan notifikasi instan (dengan prioritas Info, Success, Warning, Error) kepada seluruh user atau role tertentu secara massal.
+- **Background Task Monitor & Webhook Symphony**: Infrastruktur asinkronus untuk memantau proses berat di latar belakang dan menerima payload callback eksternal melalui sistem Webhook Listener yang aman di `/api/webhooks/tasks/`.
+- **Global Audit Logs & Telemetri**: Rekam jejak mutasi data transparan (Compliance Ready) mencakup detail pengguna, IP, dan modifikasi payload.
+- **Real-time Event Bus (SSE)**: Menggunakan Server-Sent Events untuk mengirimkan notifikasi broadcast dan status task ke client secara instan tanpa refresh.
+- **Lab Dashboard (Developer Tools)**: Tooling internal untuk mensimulasikan callback webhook dan testing integrasi asinkronus secara mandiri.
 - **Smart SWR Data Fetching**: Metode caching data pintar berbasis utilitas kustom, meminimalkan efek *loading* berlebih dan menghaluskan animasi antar layar antar-muka Dasbor.
 
 ## 5. Arsitektur Modul Asinkron
@@ -41,8 +44,10 @@ DB STUDIO difokuskan sebagai Hub Pusat untuk berbagai instansi parsial (Modul Op
 
 ## 6. Saran Selanjutnya (Roadmap & Rekomendasi)
 Karena basis peluncuran DB STUDIO disiapkan matang untuk menampung berbagai skema ekosistem aplikasi internal lanjutan ke depan, berikut adalah rekomendasi tajam untuk pembaruan fitur (Pipeline):
-1. **Pemisahan Entitas Database (Namespace/Schema)**: Apabila dikemudian hari Modul Tooling internal beranak pinak dengan masif dalam satu repositori antarmuka ini, disarankan memakai skema prefix nama *table* di ORM Prisma (contoh penamaan: `sys_users`, `hr_leave_request`, `fin_budgeting`) guna meniadakan resiko tabrakan data dan relasi yang kusut antar model independen dari masing-masing bisnis logik divisi lain.
-2. **Push Notifications Engine (SSE/WebSockets)**: Sisipkan lonceng notifikasi (Notification Bell) berdetak dinamis di ujung pojok navigasi (*navbar*) atas untuk pemberitahuan *Flyout pop-up* real-time.
+1. **Pemisahan Entitas Database (Namespace/Schema)**: Gunakan prefix nama *table* di ORM Prisma (contoh: `hr_`, `fin_`) untuk meniadakan resiko tabrakan data antar divisi.
+2. **Storage Service Integration**: Implementasi modul pusat untuk manajemen file/upload (menggunakan S3 atau Uploadthing) yang terhubung dengan `AuditLog`.
+3. **API Documentation UI**: Integrasikan Swagger atau Scalar ke dalam `/dashboard/lab` untuk dokumentasi API interaktif.
+4. **Internationalization (i18n)**: Dukungan multi-bahasa (ID/EN) untuk dashboard agar siap digunakan oleh tim lintas negara.
 
 ## 7. Tambahan Lainnya
 - **Maintainer Guardrail (Doktrin .cursorrules)**: Selalu baca panduan arsitektur kaku pengembangan yang bermukim mendalam di dalam `src/.cursorrules`. Berkas ini memuat peringatan tegas terhadap AI dan *Engineers* untuk membudayakan re-use komponen terpusat milik UI standar perusahaan dan pelarangan penggunaan teknik panggilan-data *fetch() native* manual, memastikan esensi "Panel Pusat" (Entry Point) DB STUDIO tetap ringkas, bersih (Dry code) serta stabil hingga 5-10 tahun ke depan.

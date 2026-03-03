@@ -2,6 +2,14 @@ import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
+interface MenuWithChildren {
+  id: number;
+  title: string;
+  url: string | null;
+  permission: { name: string } | null;
+  children: MenuWithChildren[];
+}
+
 export async function GET(req: Request) {
   const session = await auth.api.getSession({ headers: req.headers });
 
@@ -71,7 +79,7 @@ export async function GET(req: Request) {
   });
 
   // Filter based on permissions if permissionId is present
-  const authorizedMenus = (menus as any[]).filter(group => {
+  const authorizedMenus = (menus as unknown as MenuWithChildren[]).filter(group => {
     // Super-admin bypasses permission checks
     if (isSuperAdmin) return true;
 
@@ -81,7 +89,7 @@ export async function GET(req: Request) {
     }
 
     // Filter children based on permissions
-    group.children = (group.children as any[]).filter((item: any) => {
+    group.children = group.children.filter((item) => {
       if (item.permission && !userPermissions.includes(item.permission.name)) {
         return false;
       }
