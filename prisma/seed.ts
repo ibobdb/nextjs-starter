@@ -226,6 +226,8 @@ async function main() {
         roles: ['super_admin', 'admin'],
         permission: 'admin.read',
         items: [
+          { title: 'Forms', url: '/dashboard/lab/forms', icon: 'Settings', roles: ['super_admin', 'admin'], permission: 'admin.read' },
+          { title: 'Date Pickers', url: '/dashboard/lab/date-picker', icon: 'Settings', roles: ['super_admin', 'admin'], permission: 'admin.read' },
           { title: 'Data Table', url: '/dashboard/lab/data-table', icon: 'Beaker', roles: ['super_admin', 'admin'], permission: 'admin.read' },
           { title: 'Dialogs', url: '/dashboard/lab/dialogs', icon: 'Megaphone', roles: ['super_admin', 'admin'], permission: 'admin.read' },
           { title: 'Combobox', url: '/dashboard/lab/combobox', icon: 'Settings', roles: ['super_admin', 'admin'], permission: 'admin.read' },

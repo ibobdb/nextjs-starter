@@ -46,6 +46,12 @@ export default function AccessPage() {
           title="Access Control"
           description="Manage roles, permissions, and user access rights across the DB STUDIO Dashboard system."
         />
+        {isSuperAdmin && (
+          <Button onClick={handleSyncPermissions} disabled={isSyncing} className="gap-2">
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            Sync Permissions
+          </Button>
+        )}
       </div>
 
       <Tabs defaultValue="roles">

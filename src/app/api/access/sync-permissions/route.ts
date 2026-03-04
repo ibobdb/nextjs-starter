@@ -31,9 +31,8 @@ export async function POST() {
     const allPermissions = await prisma.permissions.findMany();
 
     // Upsert all permissions to super_admin (idempotent — safe to run multiple times)
-    let added = 0;
     for (const perm of allPermissions) {
-      const result = await prisma.rolePermission.upsert({
+      await prisma.rolePermission.upsert({
         where: {
           roleId_permissionId: {
             roleId: superAdminRole.id,
@@ -46,7 +45,6 @@ export async function POST() {
           permissionId: perm.id,
         },
       });
-      if (result) added++;
     }
 
     accessLogger.info(`POST /api/access/sync-permissions - Synced ${allPermissions.length} permissions to super_admin`);

@@ -69,7 +69,6 @@ interface DataTableProps<TData extends RowData> extends DataTableOutput<TData> {
 
 export function DataTable<TData extends RowData>({
   table,
-  state,
   pagination,
   isLoading,
   error,
