@@ -94,7 +94,7 @@ export const auth = betterAuth({
     }),
     admin(),
     customSession(async ({ user, session }) => {
-      const roles = await prisma.user.findFirst({
+      const userWithRelations = await prisma.user.findFirst({
         where: { id: session.userId },
         include: {
           userRoles: {
@@ -102,9 +102,19 @@ export const auth = betterAuth({
               role: {
                 include: {
                   rolePermissions: {
-                    include: {
-                      permission: true,
-                    },
+                    include: { permission: true },
+                  },
+                },
+              },
+            },
+          },
+          // Fetch team memberships + team permissions
+          teamMembers: {
+            include: {
+              team: {
+                include: {
+                  teamPermissions: {
+                    include: { permission: true },
                   },
                 },
               },
@@ -112,19 +122,38 @@ export const auth = betterAuth({
           },
         },
       });
-      const permissionList: string[] =
-        roles?.userRoles.flatMap((ur) =>
+
+      // Role-based permissions
+      const rolePermissions: string[] =
+        userWithRelations?.userRoles.flatMap((ur) =>
           ur.role.rolePermissions.map((rp) => rp.permission.name)
         ) ?? [];
-      const role: string[] =
-        roles?.userRoles.flatMap((r) => {
-          return r.role.name;
-        }) ?? [];
+
+      // Team-based permissions (union of all teams the user belongs to)
+      const teamPermissions: string[] =
+        userWithRelations?.teamMembers.flatMap((tm) =>
+          tm.team.teamPermissions.map((tp) => tp.permission.name)
+        ) ?? [];
+
+      // Effective permissions = union of role + team permissions
+      const allPermissions = [...new Set([...rolePermissions, ...teamPermissions])];
+
+      const roles: string[] =
+        userWithRelations?.userRoles.flatMap((ur) => ur.role.name) ?? [];
+
+      // Team info for the session
+      const teams = userWithRelations?.teamMembers.map((tm) => ({
+        id: tm.team.id,
+        name: tm.team.name,
+        role: tm.role,
+      })) ?? [];
+
       return {
         user: {
           ...user,
-          roles: role,
-          permissions: permissionList,
+          roles,
+          permissions: allPermissions,
+          teams,
         },
         session,
       };

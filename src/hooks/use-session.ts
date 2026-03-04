@@ -26,6 +26,7 @@ export type SessionUser = {
   image?: string | null;
   roles: string[];
   permissions: string[];
+  teams: { id: string; name: string; role: string }[];
 };
 
 export type SessionData = {

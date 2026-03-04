@@ -112,6 +112,7 @@ model Permissions {
   module      String
   description String
   rolePermissions RolePermission[]
+  teamPermissions TeamPermission[]
   menus           Menu[]
   @@map("permission")
 }
@@ -230,6 +231,7 @@ model Team {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   members     TeamMember[]
+  teamPermissions TeamPermission[]
 
   @@map("team")
 }
@@ -247,6 +249,18 @@ model TeamMember {
 
   @@unique([teamId, userId]) // A user can only be in a specific team once
   @@map("team_member")
+}
+
+model TeamPermission {
+  id           Int         @id @default(autoincrement())
+  teamId       String
+  permissionId Int
+
+  team         Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  permission   Permissions @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, permissionId])
+  @@map("team_permission")
 }
 
 // ─── Dynamic Menu System ──────────────────────────────────────────────────
