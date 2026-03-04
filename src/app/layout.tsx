@@ -21,7 +21,10 @@ const fontMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DB STUDIO Dashboard",
+  title: {
+    template: "%s | DB STUDIO Dashboard",
+    default: "DB STUDIO Dashboard",
+  },
   description: "Advanced RBAC Dashboard for Modern Web Applications.",
 };
 
