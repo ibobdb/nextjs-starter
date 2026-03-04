@@ -218,15 +218,17 @@ async function main() {
         label: 'Dashboard',
         roles: ['super_admin', 'admin', 'user'],
         items: [
-          { title: 'Default', url: '/dashboard/default', icon: 'Home', roles: ['super_admin', 'admin', 'user'] },
+          { title: 'Overview', url: '/dashboard', icon: 'Home', roles: ['super_admin', 'admin', 'user'] },
         ]
       },
       {
-        label: 'Testing / Lab',
+        label: 'UI Lab',
         roles: ['super_admin', 'admin'],
         permission: 'admin.read',
         items: [
-          { title: 'Integration Lab', url: '/dashboard/lab', icon: 'Beaker', roles: ['super_admin', 'admin'], permission: 'admin.read' },
+          { title: 'Data Table', url: '/dashboard/lab/data-table', icon: 'Beaker', roles: ['super_admin', 'admin'], permission: 'admin.read' },
+          { title: 'Dialogs', url: '/dashboard/lab/dialogs', icon: 'Megaphone', roles: ['super_admin', 'admin'], permission: 'admin.read' },
+          { title: 'Combobox', url: '/dashboard/lab/combobox', icon: 'Settings', roles: ['super_admin', 'admin'], permission: 'admin.read' },
         ]
       },
       {
@@ -304,6 +306,10 @@ async function main() {
       }
     }
     console.log(`✅ Seeded ${menuGroups.length} menu groups and their items`);
+  },
+  {
+    maxWait: 15000, // default: 2000
+    timeout: 30000, // default: 5000
   });
 
   console.log('Seeding finished successfully');
