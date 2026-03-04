@@ -22,6 +22,8 @@ import { Button } from '@/components/ui/button';
 import { usePermission } from '@/lib/rbac/hooks/usePermission';
 import { useSession } from '@/hooks/use-session';
 import { PermissionAlert } from '@/components/common/permission-alert';
+import { canManageRole } from '@/lib/role-hierarchy';
+import { ShieldAlert } from 'lucide-react';
 
 const MODULE_COLORS: Record<string, string> = {
   dashboard:   'bg-sky-500/10 text-sky-600 border-sky-500/20',
@@ -35,8 +37,8 @@ const MODULE_COLORS: Record<string, string> = {
 export function RolePermissionsTab() {
   const { user } = useSession();
   const { allowed: canUpdate } = usePermission('user.update');
-  const isSuperAdmin = user?.roles?.includes('super_admin');
-  const hasUpdateAccess = isSuperAdmin || canUpdate;
+  const actorRoles = user?.roles ?? [];
+  const hasUpdateAccess = canUpdate;
 
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
   const [assignedIds, setAssignedIds] = useState<Set<number>>(new Set());
@@ -125,6 +127,7 @@ export function RolePermissionsTab() {
 
   const grouped = permData?.grouped ?? {};
   const selectedRole = roles.find((r) => r.id === selectedRoleId);
+  const actorCanManageSelectedRole = selectedRole ? canManageRole(actorRoles, selectedRole.name) : true;
   const isLoading = assignedLoading || permsLoading;
 
   return (
@@ -138,6 +141,13 @@ export function RolePermissionsTab() {
         <PermissionAlert 
           message="You do not have permission to change permission mappings to roles. Please contact an administrator for permission update access."
         />
+      )}
+
+      {hasUpdateAccess && selectedRole && !actorCanManageSelectedRole && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+          <p>You cannot modify permissions for the <code className="font-mono bg-amber-100 px-1 rounded">{selectedRole.name}</code> role because it is equal to or above your role in the hierarchy.</p>
+        </div>
       )}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -181,7 +191,7 @@ export function RolePermissionsTab() {
             )}
             <Button 
               onClick={handleSave} 
-              disabled={!hasChanges || isSaving || !hasUpdateAccess}
+              disabled={!hasChanges || isSaving || !hasUpdateAccess || !actorCanManageSelectedRole}
               className="gap-2"
             >
               {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -267,7 +277,7 @@ export function RolePermissionsTab() {
                             handleToggle(perm.id, checked === true)
                           }
                           className="shrink-0"
-                          disabled={!hasUpdateAccess}
+                          disabled={!hasUpdateAccess || !actorCanManageSelectedRole}
                         />
                         <div className="min-w-0 flex-1">
                           <code className="text-xs font-mono text-foreground">{perm.name}</code>

@@ -14,6 +14,10 @@ import { Label } from "@/components/ui/label";
 import { mutate } from "swr";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { usePermission } from "@/lib/rbac/hooks/usePermission";
+import { useSession } from "@/hooks/use-session";
+import { canManageRole, canManageUser } from "@/lib/role-hierarchy";
+import { ShieldAlert } from "lucide-react";
 
 interface UserRolesDialogProps {
   user: User | null;
@@ -21,10 +25,11 @@ interface UserRolesDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-import { usePermission } from "@/lib/rbac/hooks/usePermission";
-
 export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogProps) {
+  const { user: currentUser } = useSession();
   const { allowed: canUpdate } = usePermission('user.update');
+  const actorRoles = currentUser?.roles ?? [];
+
   // Ambil daftar semua roles dari sistem
   const { data: allRoles, isLoading, error, mutate: mutateRoles } = useData<Role[]>("roles", () =>
     accessApi.getRoles()
@@ -43,6 +48,10 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
   }, [user, open]);
 
   if (!user) return null;
+
+  // Determine if the current actor can manage this target user at all
+  const targetUserRoleNames = user.userRoles.map((ur) => ur.role.name);
+  const actorCanManageUser = canManageUser(actorRoles, targetUserRoleNames);
 
   const handleToggleRole = (roleId: number, checked: boolean) => {
     setSelectedRoleIds((prev) => {
@@ -83,6 +92,14 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
           </DialogDescription>
         </DialogHeader>
 
+        {/* Warning if actor cannot manage this user */}
+        {!actorCanManageUser && (
+          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+            <p>You cannot modify roles for this user because they have a role equal to or higher than yours in the hierarchy.</p>
+          </div>
+        )}
+
         <DataLoader
           isLoading={isLoading}
           error={error}
@@ -93,29 +110,38 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
           <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             {allRoles?.map((role) => {
               const hasRole = selectedRoleIds.has(role.id);
-              const disabled = isUpdating;
+              const actorCanAssignThisRole = canManageRole(actorRoles, role.name);
+              const isDisabled = isUpdating || !canUpdate || !actorCanManageUser || !actorCanAssignThisRole;
 
               return (
-                <div key={role.id} className="flex items-center space-x-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
+                <div
+                  key={role.id}
+                  className={cn(
+                    "flex items-center space-x-3 rounded-lg border p-3 transition-colors",
+                    isDisabled ? "opacity-60 cursor-not-allowed" : "hover:bg-muted/50 cursor-pointer"
+                  )}
+                >
                   <Checkbox
                     id={`role-${role.id}`}
                     checked={hasRole}
                     onCheckedChange={(checked) => handleToggleRole(role.id, checked === true)}
-                    disabled={disabled || !canUpdate}
+                    disabled={isDisabled}
                   />
                   <div 
-                    className={cn("grid gap-1.5 leading-none flex-1", (!disabled && canUpdate) ? "cursor-pointer" : "cursor-not-allowed opacity-70")} 
-                    onClick={() => (!disabled && canUpdate) && handleToggleRole(role.id, !hasRole)}
+                    className={cn("grid gap-1.5 leading-none flex-1", !isDisabled ? "cursor-pointer" : "cursor-not-allowed")} 
+                    onClick={() => !isDisabled && handleToggleRole(role.id, !hasRole)}
                   >
                     <Label
                       htmlFor={`role-${role.id}`}
-                      className="font-medium cursor-pointer"
+                      className={cn("font-medium", !isDisabled ? "cursor-pointer" : "cursor-not-allowed")}
                     >
                       {role.name}
                     </Label>
-                    <p className="text-xs text-muted-foreground">
-                      ID: {role.id}
-                    </p>
+                    {!actorCanAssignThisRole && (
+                      <p className="text-xs text-amber-600">
+                        Requires higher privilege to assign
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -127,7 +153,7 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isUpdating}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isUpdating || isLoading || !canUpdate}>
+          <Button onClick={handleSave} disabled={isUpdating || isLoading || !canUpdate || !actorCanManageUser}>
             {isUpdating ? "Saving..." : "Save"}
           </Button>
         </DialogFooter>

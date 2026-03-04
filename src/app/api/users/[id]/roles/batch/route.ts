@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
 import { createApiResponse } from '@/lib/api-response';
 import { logger } from '@/lib/logger';
+import { canManageRole, canManageUser } from '@/lib/role-hierarchy';
 
 const userLogger = logger;
 
@@ -19,17 +20,52 @@ export async function PUT(
     return guard.error;
   }
 
+  const actorRoles = guard.session.user.roles ?? [];
+
   try {
     const { roleIds } = await request.json();
     
     if (!Array.isArray(roleIds)) {
       return NextResponse.json(
-      createApiResponse(false, 'roleIds array is required'),
+        createApiResponse(false, 'roleIds array is required'),
         { status: 400 }
       );
     }
 
     const { id: userId } = await params;
+
+    // Hierarchy check 1: Can the actor manage the target user (their current roles)?
+    const currentUserRoleRecords = await prisma.userRole.findMany({
+      where: { userId },
+      include: { role: true },
+    });
+    const currentUserRoleNames = currentUserRoleRecords.map((ur) => ur.role.name);
+
+    if (!canManageUser(actorRoles, currentUserRoleNames)) {
+      userLogger.warn(`PUT /api/users/${userId}/roles/batch - Actor cannot manage this user (insufficient hierarchy)`);
+      return NextResponse.json(
+        createApiResponse(false, 'You do not have permission to manage this user\'s roles'),
+        { status: 403 }
+      );
+    }
+
+    // Hierarchy check 2: Can the actor assign each of the requested roles?
+    if (roleIds.length > 0) {
+      const singleRoleId = Number(roleIds[0]);
+      const targetRole = await prisma.roles.findUnique({ where: { id: singleRoleId } });
+      
+      if (!targetRole) {
+        return NextResponse.json(createApiResponse(false, 'Role not found'), { status: 404 });
+      }
+
+      if (!canManageRole(actorRoles, targetRole.name)) {
+        userLogger.warn(`PUT /api/users/${userId}/roles/batch - Actor cannot assign role: ${targetRole.name}`);
+        return NextResponse.json(
+          createApiResponse(false, `You do not have permission to assign the '${targetRole.name}' role`),
+          { status: 403 }
+        );
+      }
+    }
 
     // Run in a transaction to ensure atomic replacement
     await prisma.$transaction(async (tx) => {
@@ -40,7 +76,7 @@ export async function PUT(
 
       // 2. Insert new roles if any exist
       if (roleIds.length > 0) {
-        // Enforce max 1 role per user based on user request "pastikan 1 user hanya 1 role"
+        // Enforce max 1 role per user
         const singleRoleId = Number(roleIds[0]);
         
         await tx.userRole.create({

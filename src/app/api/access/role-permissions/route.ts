@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
 import { createApiResponse } from '@/lib/api-response';
 import { logger } from '@/lib/logger';
+import { canManageRole } from '@/lib/role-hierarchy';
 
 const accessLogger = logger;
 
@@ -36,11 +37,26 @@ export async function POST(request: Request) {
   const guard = await apiGuard('user.update');
   if (guard.error) return guard.error;
 
+  const actorRoles = guard.session.user.roles ?? [];
   const { roleId, permissionId } = await request.json();
+
   if (!roleId || !permissionId) {
     return NextResponse.json(
       createApiResponse(false, 'roleId and permissionId are required'),
       { status: 400 }
+    );
+  }
+
+  // Hierarchy check: can the actor manage the target role?
+  const targetRole = await prisma.roles.findUnique({ where: { id: Number(roleId) } });
+  if (!targetRole) {
+    return NextResponse.json(createApiResponse(false, 'Role not found'), { status: 404 });
+  }
+  if (!canManageRole(actorRoles, targetRole.name)) {
+    accessLogger.warn(`POST /api/access/role-permissions - Actor cannot manage role: ${targetRole.name}`);
+    return NextResponse.json(
+      createApiResponse(false, `You do not have permission to modify permissions for the '${targetRole.name}' role`),
+      { status: 403 }
     );
   }
 
@@ -65,11 +81,26 @@ export async function DELETE(request: Request) {
   const guard = await apiGuard('user.update');
   if (guard.error) return guard.error;
 
+  const actorRoles = guard.session.user.roles ?? [];
   const { roleId, permissionId } = await request.json();
+
   if (!roleId || !permissionId) {
     return NextResponse.json(
       createApiResponse(false, 'roleId and permissionId are required'),
       { status: 400 }
+    );
+  }
+
+  // Hierarchy check: can the actor manage the target role?
+  const targetRole = await prisma.roles.findUnique({ where: { id: Number(roleId) } });
+  if (!targetRole) {
+    return NextResponse.json(createApiResponse(false, 'Role not found'), { status: 404 });
+  }
+  if (!canManageRole(actorRoles, targetRole.name)) {
+    accessLogger.warn(`DELETE /api/access/role-permissions - Actor cannot manage role: ${targetRole.name}`);
+    return NextResponse.json(
+      createApiResponse(false, `You do not have permission to modify permissions for the '${targetRole.name}' role`),
+      { status: 403 }
     );
   }
 

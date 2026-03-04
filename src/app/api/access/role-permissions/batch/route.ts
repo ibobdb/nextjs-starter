@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { apiGuard } from '@/lib/api-guard';
 import { createApiResponse } from '@/lib/api-response';
 import { logger } from '@/lib/logger';
+import { canManageRole } from '@/lib/role-hierarchy';
 
 const accessLogger = logger;
 
@@ -16,6 +17,8 @@ export async function PUT(request: NextRequest) {
     return guard.error;
   }
 
+  const actorRoles = guard.session.user.roles ?? [];
+
   try {
     const { roleId, permissionIds } = await request.json();
     
@@ -27,6 +30,19 @@ export async function PUT(request: NextRequest) {
     }
 
     const roleIdNum = Number(roleId);
+
+    // Hierarchy check: can the actor manage the target role?
+    const targetRole = await prisma.roles.findUnique({ where: { id: roleIdNum } });
+    if (!targetRole) {
+      return NextResponse.json(createApiResponse(false, 'Role not found'), { status: 404 });
+    }
+    if (!canManageRole(actorRoles, targetRole.name)) {
+      accessLogger.warn(`PUT /api/access/role-permissions/batch - Actor cannot manage role: ${targetRole.name}`);
+      return NextResponse.json(
+        createApiResponse(false, `You do not have permission to modify permissions for the '${targetRole.name}' role`),
+        { status: 403 }
+      );
+    }
 
     // Run in a transaction to ensure atomic replacement
     await prisma.$transaction(async (tx) => {

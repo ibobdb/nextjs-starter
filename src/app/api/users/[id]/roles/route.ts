@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { createApiResponse } from '@/lib/api-response';
 import { apiGuard } from '@/lib/api-guard';
 import { logger } from '@/lib/logger';
+import { canManageRole, canManageUser } from '@/lib/role-hierarchy';
 
 const userLogger = logger;
 
@@ -19,11 +20,26 @@ export async function POST(
     return guard.error;
   }
 
+  const actorRoles = guard.session.user.roles ?? [];
+
   try {
     const { roleId } = await request.json();
     if (!roleId) {
       userLogger.warn(`POST /api/users/${id}/roles - Missing roleId`);
       return NextResponse.json(createApiResponse(false, 'roleId is required'), { status: 400 });
+    }
+
+    // Hierarchy check: can the actor assign this role?
+    const targetRole = await prisma.roles.findUnique({ where: { id: Number(roleId) } });
+    if (!targetRole) {
+      return NextResponse.json(createApiResponse(false, 'Role not found'), { status: 404 });
+    }
+    if (!canManageRole(actorRoles, targetRole.name)) {
+      userLogger.warn(`POST /api/users/${id}/roles - Actor cannot assign role: ${targetRole.name}`);
+      return NextResponse.json(
+        createApiResponse(false, `You do not have permission to assign the '${targetRole.name}' role`),
+        { status: 403 }
+      );
     }
 
     // Cek apakah user sudah punya role ini
@@ -75,11 +91,28 @@ export async function DELETE(
     return guard.error;
   }
 
+  const actorRoles = guard.session.user.roles ?? [];
+
   try {
     const { roleId } = await request.json();
     if (!roleId) {
       userLogger.warn(`DELETE /api/users/${id}/roles - Missing roleId`);
       return NextResponse.json(createApiResponse(false, 'roleId is required'), { status: 400 });
+    }
+
+    // Hierarchy check: can the actor manage the target user?
+    const targetUserRoleRecords = await prisma.userRole.findMany({
+      where: { userId: id },
+      include: { role: true },
+    });
+    const targetUserRoleNames = targetUserRoleRecords.map((ur) => ur.role.name);
+
+    if (!canManageUser(actorRoles, targetUserRoleNames)) {
+      userLogger.warn(`DELETE /api/users/${id}/roles - Actor cannot manage this user (insufficient hierarchy)`);
+      return NextResponse.json(
+        createApiResponse(false, 'You do not have permission to manage this user\'s roles'),
+        { status: 403 }
+      );
     }
 
     await prisma.userRole.deleteMany({
