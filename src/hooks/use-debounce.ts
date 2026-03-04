@@ -1,28 +1,19 @@
-'use client';
+import { useEffect, useState } from 'react';
 
 /**
- * useDebounce — Debounce value hook (DBStudio Base)
+ * useDebounce — Custom hook to debounce rapid state changes (DBStudio Base)
  *
- * Menunda update nilai hingga user berhenti mengetik.
- * Sangat berguna untuk search input agar tidak trigger fetch di setiap keystroke.
+ * Useful for delaying API calls while a user is typing in a search input.
  *
- * @example Search dengan debounce
- * const [search, setSearch] = useState('')
- * const debouncedSearch = useDebounce(search, 400)
+ * @example
+ * ```tsx
+ * const [searchTerm, setSearchTerm] = useState('');
+ * const debouncedSearch = useDebounce(searchTerm, 500);
  *
- * // fetch hanya dipanggil saat debouncedSearch berubah
- * const { data } = useData(
- *   debouncedSearch ? `topics?q=${debouncedSearch}` : 'topics',
- *   () => topicsApi.search(debouncedSearch)
- * )
- */
-
-import { useState, useEffect } from 'react';
-
-/**
- * @param value  Nilai yang ingin di-debounce
- * @param delay  Delay dalam ms. Default: 300ms
- * @returns      Nilai yang sudah di-debounce
+ * useEffect(() => {
+ *   if (debouncedSearch) fetchResults(debouncedSearch);
+ * }, [debouncedSearch]);
+ * ```
  */
 export function useDebounce<T>(value: T, delay: number = 300): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);

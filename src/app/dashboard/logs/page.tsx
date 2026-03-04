@@ -119,7 +119,7 @@ export default function AuditLogsPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <PageHeader
           title="System Audit Logs"

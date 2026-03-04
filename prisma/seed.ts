@@ -156,22 +156,19 @@ async function main() {
     }
 
     if (userRole) {
-      const userBasePermissions = ['dashboard.read', 'user.read', 'notifications.read'];
-      console.log(`Mapping ${userBasePermissions.length} base permissions to user role...`);
-      for (const name of userBasePermissions) {
-        const perm = await tx.permissions.findUnique({ where: { name } });
-        if (perm) {
-          await tx.rolePermission.upsert({
-            where: {
-              roleId_permissionId: { roleId: userRole.id, permissionId: perm.id },
-            },
-            update: {},
-            create: {
-              roleId: userRole.id,
-              permissionId: perm.id,
-            },
-          });
-        }
+      const allPermissions = await tx.permissions.findMany();
+      console.log(`Mapping all ${allPermissions.length} permissions to user role (demo mode)...`);
+      for (const p of allPermissions) {
+        await tx.rolePermission.upsert({
+          where: {
+            roleId_permissionId: { roleId: userRole.id, permissionId: p.id },
+          },
+          update: {},
+          create: {
+            roleId: userRole.id,
+            permissionId: p.id,
+          },
+        });
       }
     }
 

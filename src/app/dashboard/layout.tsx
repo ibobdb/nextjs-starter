@@ -7,6 +7,8 @@ import { Toaster } from '@/components/ui/sonner';
 import { NotificationProvider } from '@/lib/notification-package';
 import { RouteGuard } from '@/lib/rbac/components/RouteGuard';
 import { getSystemConfig } from '@/lib/config';
+import { PageTransition } from '@/components/common/page-transition';
+import { DialogProvider } from '@/lib/dialog';
 
 export default async function DashboardLayout({
   children,
@@ -26,17 +28,21 @@ export default async function DashboardLayout({
       disableTransitionOnChange
     >
       <NotificationProvider>
-        <RouteGuard />
-        <SidebarProvider defaultOpen={defaultOpen}>
-          <AppSidebar appName={appName} />
-          <main className="flex flex-col w-full min-h-screen">
-            <Toaster />
-            <AppNavbar />
-            <div className="flex-1 overflow-auto bg-background p-4 md:p-6 lg:p-8">
-              {children}
-            </div>
-          </main>
-        </SidebarProvider>
+        <DialogProvider>
+          <RouteGuard />
+          <SidebarProvider defaultOpen={defaultOpen}>
+            <AppSidebar appName={appName} />
+            <main className="flex flex-col w-full min-h-screen">
+              <Toaster />
+              <AppNavbar />
+              <div className="flex-1 overflow-auto bg-background p-4 md:p-6 lg:p-8">
+                <PageTransition>
+                  {children}
+                </PageTransition>
+              </div>
+            </main>
+          </SidebarProvider>
+        </DialogProvider>
       </NotificationProvider>
     </ThemeProvider>
   );

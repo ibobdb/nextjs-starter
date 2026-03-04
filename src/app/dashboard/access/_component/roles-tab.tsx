@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Trash2, Plus, Shield } from 'lucide-react';
+import { Trash2, Plus, Shield, RefreshCw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/common/page-header';
 import { AppTable } from '@/components/common/app-table';
@@ -49,6 +49,20 @@ export function RolesTab() {
     () => accessApi.getRoles(),
     { transform: (res) => res.data! }
   );
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await accessApi.syncPermissions();
+      if (!res.success) throw new Error(res.message ?? 'Sync failed');
+      toast.success(res.message ?? 'Permissions synced to super_admin');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to sync permissions');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const [showCreate, setShowCreate] = useState(false);
   const [newRoleName, setNewRoleName] = useState('');
@@ -155,12 +169,29 @@ export function RolesTab() {
         title="Roles"
         description="Manage available roles in the system."
         actions={
-          hasCreateAccess && (
-            <Button size="sm" className="gap-2" onClick={() => setShowCreate(true)}>
-              <Plus className="h-3.5 w-3.5" />
-              Add Role
-            </Button>
-          )
+          <div className="flex items-center gap-2">
+            {isSuperAdmin && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2"
+                onClick={handleSync}
+                disabled={isSyncing}
+                title="Assign all existing permissions to super_admin"
+              >
+                {isSyncing
+                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  : <RefreshCw className="h-3.5 w-3.5" />}
+                Sync Permissions
+              </Button>
+            )}
+            {hasCreateAccess && (
+              <Button size="sm" className="gap-2" onClick={() => setShowCreate(true)}>
+                <Plus className="h-3.5 w-3.5" />
+                Add Role
+              </Button>
+            )}
+          </div>
         }
       />
 
