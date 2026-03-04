@@ -231,6 +231,7 @@ async function main() {
           { title: 'Data Table', url: '/dashboard/lab/data-table', icon: 'Beaker', roles: ['super_admin', 'admin'], permission: 'admin.read' },
           { title: 'Dialogs', url: '/dashboard/lab/dialogs', icon: 'Megaphone', roles: ['super_admin', 'admin'], permission: 'admin.read' },
           { title: 'Combobox', url: '/dashboard/lab/combobox', icon: 'Settings', roles: ['super_admin', 'admin'], permission: 'admin.read' },
+          { title: 'Background Tasks', url: '/dashboard/lab', icon: 'Settings', roles: ['super_admin', 'admin'], permission: 'admin.read' },
         ]
       },
       {
