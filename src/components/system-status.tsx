@@ -11,7 +11,7 @@ interface SystemStatusProps {
   appName?: string;
 }
 
-export function SystemStatus({ isCollapsed, appName = 'DB STUDIO' }: SystemStatusProps) {
+export function SystemStatus({ isCollapsed, appName = 'DBS' }: SystemStatusProps) {
   const content = (
     <div
       className={cn(

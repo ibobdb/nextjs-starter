@@ -18,7 +18,7 @@ export default async function DashboardLayout({
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
   
-  const appName = await getSystemConfig('APP_NAME', process.env.APP_NAME || 'DB STUDIO') as string;
+  const appName = await getSystemConfig('APP_NAME', process.env.APP_NAME || 'DBS') as string;
 
   return (
     <ThemeProvider

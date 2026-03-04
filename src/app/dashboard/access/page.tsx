@@ -44,7 +44,7 @@ export default function AccessPage() {
         <PageHeader
           icon={ShieldCheck}
           title="Access Control"
-          description="Manage roles, permissions, and user access rights across the DB STUDIO Dashboard system."
+          description="Manage roles, permissions, and user access rights across the DBS system."
         />
         {isSuperAdmin && (
           <Button onClick={handleSyncPermissions} disabled={isSyncing} className="gap-2">

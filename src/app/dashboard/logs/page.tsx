@@ -123,7 +123,7 @@ export default function AuditLogsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <PageHeader
           title="System Audit Logs"
-          description="View security events and administrative actions across DB STUDIO Dashboard."
+          description="View security events and administrative actions across DBS."
         />
       </div>
 

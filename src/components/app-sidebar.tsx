@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { 
-  Shell, 
+  Database, 
   Home, 
   User2, 
   Users, 
@@ -45,7 +45,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export function AppSidebar({ appName = 'DB STUDIO' }: { appName?: string }) {
+export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
   const pathname = usePathname();
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
@@ -72,9 +72,9 @@ export function AppSidebar({ appName = 'DB STUDIO' }: { appName?: string }) {
           )}
         >
           {isCollapsed ? (
-            <Shell size={20} className="shrink-0" />
+            <Database size={20} className="shrink-0 text-primary" />
           ) : (
-            <span className="font-bold text-foreground truncate space-x-7 text-xl">
+            <span className="font-extrabold text-primary tracking-widest truncate space-x-7 text-xl">
               {appName.toUpperCase()}
             </span>
           )}

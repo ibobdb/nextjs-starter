@@ -9,7 +9,7 @@ export default function AnalyticsStubPage() {
     <div className="space-y-6">
       <PageHeader
         title="Analytics Overview"
-        description="Monitor the performance and usage statistics of your DB STUDIO Dashboard."
+        description="Monitor the performance and usage statistics of your DBS."
       />
 
       <div className="pt-12">

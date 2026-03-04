@@ -65,7 +65,7 @@ export function getVerificationEmailTemplate(url: string, name?: string) {
           <p style="word-break: break-all; font-size: 14px;"><a href="${url}">${url}</a></p>
         </div>
         <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} DB STUDIO Dashboard. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} DBS. All rights reserved.</p>
         </div>
       </div>
     </body>
