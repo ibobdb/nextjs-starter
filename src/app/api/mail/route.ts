@@ -44,9 +44,12 @@ export async function POST(request: NextRequest) {
     
     // Formatting the email so it looks like "APP_NAME <EMAIL_FROM>"
     const formattedDefaultFrom = `${appName} <${defaultFrom as string}>`;
+    const finalFrom = from || formattedDefaultFrom;
+
+    mailLogger.info(`Sending email from: ${finalFrom} to: ${to}`);
 
     const { data, error } = await resend.emails.send({
-      from: from || formattedDefaultFrom,
+      from: finalFrom,
       to: [to],
       subject,
       html,

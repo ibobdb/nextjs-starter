@@ -1,20 +1,28 @@
-import type { Metadata } from 'next';
-import { Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
-import './globals.css';
+import type { Metadata } from "next";
+import { Poppins, Lora, IBM_Plex_Mono } from "next/font/google";
+import "./globals.css";
 
-const fontSans = Bricolage_Grotesque({
+const fontSans = Poppins({
   subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-sans",
 });
 
-const fontMono = JetBrains_Mono({
+const fontSerif = Lora({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-serif",
+});
+
+const fontMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700"],
   variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
-  title: 'DB STUDIO Dashboard',
-  description: 'Advanced RBAC Dashboard for Modern Web Applications.',
+  title: "DB STUDIO Dashboard",
+  description: "Advanced RBAC Dashboard for Modern Web Applications.",
 };
 
 export default function RootLayout({
@@ -23,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`} >
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased`}>
         {children}
       </body>
     </html>

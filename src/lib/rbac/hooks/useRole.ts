@@ -18,6 +18,11 @@ export function useRole(requiredRoles: string | string[]): {
 
   if (isLoading) return { allowed: false, isLoading: true };
 
+  // Super Admin bypass
+  if (user?.roles?.includes('super_admin')) {
+    return { allowed: true, isLoading: false };
+  }
+
   const required = Array.isArray(requiredRoles)
     ? requiredRoles
     : [requiredRoles];

@@ -118,9 +118,11 @@ export default function TeamsPage() {
         )}
       </div>
 
-        <PermissionAlert 
-          message="You do not have permission to manage (create/delete) teams. Please contact an administrator for team management access."
-        />
+        {!hasWriteAccess && (
+          <PermissionAlert 
+            message="You do not have permission to manage (create/delete) teams. Please contact an administrator for team management access."
+          />
+        )}
 
       {isLoading ? (
         <DataLoader isLoading={true} skeletonVariant="spinner" />

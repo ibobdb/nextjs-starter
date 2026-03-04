@@ -145,9 +145,11 @@ export function RolesTab() {
 
   return (
     <div className="space-y-4">
+      {(!hasCreateAccess || !hasDeleteAccess) && (
         <PermissionAlert 
           message="You do not have permission to manage (add/delete) roles. Please contact an administrator for role management access."
         />
+      )}
 
       <PageHeader
         title="Roles"

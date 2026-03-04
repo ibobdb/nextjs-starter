@@ -11,14 +11,18 @@ export const getSystemConfig = unstable_cache(
       const config = await prisma.systemConfig.findUnique({
         where: { key },
       });
-      return config ? config.value : fallbackValue;
+      const val = config ? config.value : fallbackValue;
+      return val;
     } catch (error) {
       console.error(`Error fetching SystemConfig for key ${key}:`, error);
       return fallbackValue;
     }
   },
-  ['system-config-key'], // This needs to be dynamic based on key, wait, next/cache uses the function arguments too
-  { tags: ['system-config'], revalidate: 3600 } 
+  ['system-config'], // Base tag
+  { 
+    tags: ['system-config'], 
+    revalidate: 3600
+  } 
 );
 
 /**
