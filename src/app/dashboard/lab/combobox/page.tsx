@@ -53,7 +53,7 @@ export default function ComboboxDemoPage() {
               <Monitor className="h-4 w-4 text-primary" /> Client Mode
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Data statis di-load di memori. Pencarian terjadi secara instan tanpa delay (cmdk native).
+              Static data loaded in memory. Searching happens instantly without delay (native cmdk).
             </p>
           </div>
           
@@ -81,7 +81,7 @@ export default function ComboboxDemoPage() {
               <Server className="h-4 w-4 text-primary" /> Server Mode
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Fetch data ke API saat mengetik dengan <code className="bg-muted px-1 py-0.5 rounded">useDebounce(300ms)</code>.
+              Fetches data from API while typing using <code className="bg-muted px-1 py-0.5 rounded">useDebounce(300ms)</code>.
             </p>
           </div>
           

@@ -99,7 +99,7 @@ export function AppTable<TData>({
   error = null,
   onRetry,
   pagination,
-  emptyTitle = 'Tidak ada data',
+  emptyTitle = 'No data found',
   emptyDescription,
   emptyIcon,
   emptyAction,
@@ -119,7 +119,7 @@ export function AppTable<TData>({
   if (error) {
     return (
       <ErrorState
-        title="Gagal memuat data"
+        title="Failed to load data"
         description={error.message}
         onRetry={onRetry}
         className={className}
@@ -195,9 +195,9 @@ export function AppTable<TData>({
       {pagination && totalPages > 1 && (
         <div className="flex items-center justify-between px-1">
           <p className="text-xs text-muted-foreground">
-            Halaman <span className="font-medium">{pagination.page}</span> dari{' '}
+            Page <span className="font-medium">{pagination.page}</span> of{' '}
             <span className="font-medium">{totalPages}</span>
-            {' '}({pagination.total} item)
+            {' '}({pagination.total} items)
           </p>
           <div className="flex items-center gap-1">
             <Button

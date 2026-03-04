@@ -10,18 +10,18 @@ import type { ReactNode } from 'react';
  *
  * @example
  * <EmptyState
- *   title="Tidak ada data"
- *   description="Coba ubah filter atau tambahkan data baru."
- *   action={<Button>Tambah</Button>}
+ *   title="No data found"
+ *   description="Try changing the filters or add new data."
+ *   action={<Button>Add</Button>}
  * />
  */
 
 interface EmptyStateProps {
-  /** Icon JSX / ReactNode (misal: <PackageOpen className="h-7 w-7 text-muted-foreground/60" />) */
+  /** Icon JSX / ReactNode (e.g., <PackageOpen className="h-7 w-7 text-muted-foreground/60" />) */
   icon?: ReactNode;
-  /** Judul pesan kosong */
+  /** Empty state title */
   title: string;
-  /** Deskripsi tambahan */
+  /** Optional description */
   description?: string;
   /** Action button/link */
   action?: ReactNode;

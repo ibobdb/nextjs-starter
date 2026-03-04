@@ -72,7 +72,7 @@ export function UserRolesDialog({ user, open, onOpenChange }: UserRolesDialogPro
     try {
       await usersApi.syncUserRoles(user.id, Array.from(selectedRoleIds));
       toast.success("User roles updated successfully");
-      // Re-fetch daftar user untuk memperbarui tabel & dialog
+      // Re-fetch user list to update table & dialog
       mutate("users");
       onOpenChange(false);
     } catch (err: unknown) {

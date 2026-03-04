@@ -63,16 +63,16 @@ export function DataLoader({
   emptyFallback,
   skeletonVariant = "card",
   skeletonProps,
-  emptyTitle = "Data Kosong",
-  emptyDescription = "Belum ada data untuk ditampilkan saat ini.",
+  emptyTitle = "No Data Found",
+  emptyDescription = "There is no data to display at this time.",
   emptyIcon,
   children,
 }: DataLoaderProps) {
   if (error) {
     return (
       <ErrorState
-        title="Gagal Memuat Data"
-        description={error instanceof Error ? error.message : typeof error === 'string' ? error : "Terjadi kesalahan yang tidak diketahui"}
+        title="Failed to Load Data"
+        description={error instanceof Error ? error.message : typeof error === 'string' ? error : "An unknown error occurred"}
         onRetry={onRetry}
       />
     );

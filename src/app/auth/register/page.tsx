@@ -29,17 +29,17 @@ import {
 } from '@/components/ui/form';
 const schema = z
   .object({
-    name: z.string().min(2, 'Nama harus terdiri dari minimal 2 karakter'),
-    email: z.string().email('Email tidak valid'),
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    email: z.string().email('Invalid email address'),
     password: z
       .string()
-      .min(6, 'Password harus terdiri dari minimal 6 karakter'),
+      .min(6, 'Password must be at least 6 characters'),
     confirmPassword: z
       .string()
-      .min(6, 'Konfirmasi password harus terdiri dari minimal 6 karakter'),
+      .min(6, 'Password confirmation must be at least 6 characters'),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Password dan konfirmasi password harus sama',
+    message: 'Passwords do not match',
     path: ['confirmPassword'],
   });
 
@@ -68,17 +68,17 @@ export default function RegisterPage() {
       },
       onSuccess: () => {
         toast.success(
-          'Registrasi berhasil! Silakan periksa email Anda untuk verifikasi.'
+          'Registration successful! Please check your email for verification.'
         );
 
         form.reset();
         setMessage({
           type: 'success',
-          text: 'Registrasi berhasil! Silakan periksa email Anda untuk verifikasi.',
+          text: 'Registration successful! Please check your email for verification.',
         });
       },
       onError: (ctx) => {
-        toast.error('Registrasi gagal! Silakan coba lagi.');
+        toast.error('Registration failed! Please try again.');
         setMessage({
           type: 'error',
           text: ctx.error.message,
@@ -91,10 +91,10 @@ export default function RegisterPage() {
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">
-          Registrasi
+          Register
         </CardTitle>
         <CardDescription className="text-center">
-          Buat akun baru untuk memulai
+          Create a new account to get started
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -106,12 +106,12 @@ export default function RegisterPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nama Lengkap</FormLabel>
+                    <FormLabel>Full Name</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
-                          placeholder="Nama Lengkap"
+                          placeholder="Full Name"
                           className="pl-10"
                           {...field}
                         />
@@ -133,7 +133,7 @@ export default function RegisterPage() {
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           type="email"
-                          placeholder="nama@example.com"
+                          placeholder="name@example.com"
                           className="pl-10"
                           {...field}
                         />
@@ -182,7 +182,7 @@ export default function RegisterPage() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Konfirmasi Password</FormLabel>
+                    <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -221,7 +221,7 @@ export default function RegisterPage() {
               )}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Loading...' : 'Daftar'}
+                {isLoading ? 'Loading...' : 'Sign Up'}
               </Button>
             </div>
           </form>
@@ -229,12 +229,12 @@ export default function RegisterPage() {
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
-          Sudah punya akun?{' '}
+          Already have an account?{' '}
           <Link
             href="/auth/login"
             className="text-primary hover:underline font-medium"
           >
-            Login di sini
+            Log in here
           </Link>
         </p>
       </CardFooter>

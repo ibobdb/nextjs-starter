@@ -27,8 +27,8 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({
-  title = 'Gagal memuat data',
-  description = 'Terjadi kesalahan saat memuat data. Coba lagi.',
+  title = 'Failed to load data',
+  description = 'An error occurred while loading data. Please try again.',
   onRetry,
   className,
 }: ErrorStateProps) {
@@ -54,7 +54,7 @@ export function ErrorState({
           onClick={onRetry}
         >
           <RefreshCw className="h-3.5 w-3.5" />
-          Coba Lagi
+          Try Again
         </Button>
       )}
     </div>

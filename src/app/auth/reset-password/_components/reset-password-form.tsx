@@ -33,19 +33,19 @@ const resetPasswordSchema = z
   .object({
     password: z
       .string()
-      .min(8, { message: 'Password minimal 8 karakter' })
-      .max(128, { message: 'Password maksimal 128 karakter' })
+      .min(8, { message: 'Password must be at least 8 characters' })
+      .max(128, { message: 'Password must be at most 128 characters' })
       .regex(/[A-Z]/, {
-        message: 'Password harus mengandung minimal 1 huruf besar',
+        message: 'Password must contain at least 1 uppercase letter',
       })
       .regex(/[a-z]/, {
-        message: 'Password harus mengandung minimal 1 huruf kecil',
+        message: 'Password must contain at least 1 lowercase letter',
       })
-      .regex(/[0-9]/, { message: 'Password harus mengandung minimal 1 angka' }),
+      .regex(/[0-9]/, { message: 'Password must contain at least 1 number' }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Password tidak cocok',
+    message: 'Passwords do not match',
     path: ['confirmPassword'],
   });
 
@@ -87,21 +87,21 @@ function ResetPasswordFormContent({ token }: ResetPasswordFormProps) {
       });
 
       if (error) {
-        toast.error(error.message || 'Gagal mereset password');
+        toast.error(error.message || 'Failed to reset password');
         setMessage({
           type: 'error',
           text:
             error.message ||
-            'Gagal mereset password. Token mungkin sudah kadaluarsa.',
+            'Failed to reset password. Token may have expired.',
         });
         setIsLoading(false);
         return;
       }
 
-      toast.success('Password berhasil direset!');
+      toast.success('Password successfully reset!');
       setMessage({
         type: 'success',
-        text: 'Password berhasil direset! Mengalihkan ke halaman login...',
+        text: 'Password successfully reset! Redirecting to login...',
       });
 
       // Redirect to login after successful reset
@@ -110,10 +110,10 @@ function ResetPasswordFormContent({ token }: ResetPasswordFormProps) {
       }, 2000);
     } catch (error) {
       console.error('Unexpected error during password reset:', error);
-      toast.error('Terjadi kesalahan yang tidak terduga');
+      toast.error('An unexpected error occurred');
       setMessage({
         type: 'error',
-        text: 'Terjadi kesalahan yang tidak terduga',
+        text: 'An unexpected error occurred',
       });
       setIsLoading(false);
     }
@@ -125,27 +125,27 @@ function ResetPasswordFormContent({ token }: ResetPasswordFormProps) {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center text-destructive">
-            Token Tidak Valid
+            Invalid Token
           </CardTitle>
           <CardDescription className="text-center">
-            Token reset password tidak ditemukan atau sudah kadaluarsa
+            Password reset token was not found or has expired
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Link reset password tidak valid atau sudah kadaluarsa. Silakan
-              minta link reset password baru.
+              The password reset link is invalid or has expired. Please
+              request a new password reset link.
             </AlertDescription>
           </Alert>
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
           <Button asChild className="w-full">
-            <Link href="/auth/forgot-password">Minta Link Baru</Link>
+            <Link href="/auth/forgot-password">Request New Link</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <Link href="/auth/login">Kembali ke Login</Link>
+            <Link href="/auth/login">Back to Login</Link>
           </Button>
         </CardFooter>
       </Card>
@@ -159,7 +159,7 @@ function ResetPasswordFormContent({ token }: ResetPasswordFormProps) {
           Reset Password
         </CardTitle>
         <CardDescription className="text-center">
-          Masukkan password baru Anda
+          Enter your new password
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -170,7 +170,7 @@ function ResetPasswordFormContent({ token }: ResetPasswordFormProps) {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password Baru</FormLabel>
+                  <FormLabel>New Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -205,7 +205,7 @@ function ResetPasswordFormContent({ token }: ResetPasswordFormProps) {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Konfirmasi Password</FormLabel>
+                  <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -238,12 +238,12 @@ function ResetPasswordFormContent({ token }: ResetPasswordFormProps) {
             />
 
             <div className="text-xs text-muted-foreground space-y-1">
-              <p>Password harus memenuhi kriteria:</p>
+              <p>Password must meet these criteria:</p>
               <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Minimal 8 karakter</li>
-                <li>Mengandung huruf besar (A-Z)</li>
-                <li>Mengandung huruf kecil (a-z)</li>
-                <li>Mengandung angka (0-9)</li>
+                <li>At least 8 characters long</li>
+                <li>Contains at least one uppercase letter (A-Z)</li>
+                <li>Contains at least one lowercase letter (a-z)</li>
+                <li>Contains at least one number (0-9)</li>
               </ul>
             </div>
 
@@ -256,19 +256,19 @@ function ResetPasswordFormContent({ token }: ResetPasswordFormProps) {
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Mereset...' : 'Reset Password'}
+              {isLoading ? 'Resetting...' : 'Reset Password'}
             </Button>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
-          Ingat password Anda?{' '}
+          Remember your password?{' '}
           <Link
             href="/auth/login"
             className="text-primary hover:underline font-medium"
           >
-            Login di sini
+            Log in here
           </Link>
         </p>
       </CardFooter>

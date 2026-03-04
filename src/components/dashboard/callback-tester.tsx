@@ -269,12 +269,12 @@ export function CallbackTester() {
         </CardHeader>
         <CardContent className="text-[10px] text-muted-foreground grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
           <ul className="list-disc pl-4 space-y-1">
-             <li><strong>Task List</strong>: Buka menu Task di topbar untuk melihat transisi status secara real-time.</li>
-             <li><strong>Simulasi Delay</strong>: Gunakan slider untuk melihat bagaimana sistem menangani task yang sedang berjalan lama.</li>
+             <li><strong>Task List</strong>: Open the Task menu in the topbar to see real-time status transitions.</li>
+             <li><strong>Delay Simulation</strong>: Use the slider to see how the system handles long-running tasks.</li>
           </ul>
           <ul className="list-disc pl-4 space-y-1">
-             <li><strong>Real-time Stats</strong>: Task yang sedang berjalan akan dihitung sebagai active task.</li>
-             <li><strong>Auto-Notification</strong>: Setelah timer selesai, notifikasi akan langsung muncul di panel notifikasi.</li>
+             <li><strong>Real-time Stats</strong>: Running tasks apply towards the active task count.</li>
+             <li><strong>Auto-Notification</strong>: After the timer completes, a notification will immediately appear in the notifications panel.</li>
           </ul>
         </CardContent>
       </Card>

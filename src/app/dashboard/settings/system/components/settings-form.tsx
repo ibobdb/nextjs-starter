@@ -114,7 +114,7 @@ export function SettingsForm() {
     <div className="space-y-6">
       {!hasUpdateAccess && (
         <PermissionAlert 
-          message="Anda tidak memiliki izin untuk mengubah konfigurasi sistem. Silakan hubungi administrator jika Anda memerlukan akses update."
+          message="You do not have permission to modify system configuration. Please contact an administrator if you need update access."
         />
       )}
 
