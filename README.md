@@ -30,6 +30,10 @@ If you are just looking to run the dashboard locally:
    ```
    *(Running the seed command is critical to populate the initial `super_admin` roles and permissions).*
 
+   **Default Admin Credentials:**
+   - Email: `admin@starter.com`
+   - Password: `superadmin123`
+
 4. **Run Development Server**
    ```bash
    npm run dev
