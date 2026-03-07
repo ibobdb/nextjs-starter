@@ -1,0 +1,130 @@
+name: Build and Deploy
+
+on:
+  workflow_dispatch: # Allow manual trigger
+    inputs:
+      action:
+        description: 'Choose Action'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - deploy_only
+          - restart_only
+      tag:
+        description: 'Tag or Branch to deploy (e.g., main, v1.0.0)'
+        required: true
+        default: 'main'
+        type: string
+
+jobs:
+  build:
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'deploy'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || 'main' }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: always()
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set Tag Name
+        id: vars
+        run: |
+          TAG=${{ github.event.inputs.tag }}
+          # Fallback to latest if tag is 'main' or empty
+          if [ "$TAG" == "main" ] || [ -z "$TAG" ]; then
+            echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+          fi
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/dbstudio-app:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    if: always() && !failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -e
+            
+            # Setup environment variables
+            export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+            export TARGET_TAG="${{ github.event.inputs.tag }}"
+            # Map github tag 'main' to docker tag 'latest'
+            if [ "$TARGET_TAG" == "main" ] || [ -z "$TARGET_TAG" ]; then
+              export IMAGE_TAG="latest"
+            else
+              export IMAGE_TAG="$TARGET_TAG"
+            fi
+            
+            APP_DIR=~/dbstudio
+            REPO_URL="https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git"
+            
+            if [ ! -d "$APP_DIR/.git" ]; then
+              echo "Cloning repository..."
+              git clone "$REPO_URL" "$APP_DIR"
+            fi
+            
+            cd "$APP_DIR"
+            git remote set-url origin "$REPO_URL"
+            
+            # Fetch all tags and checkout specific tag or branch
+            git fetch --all --tags
+            echo "Checking out $TARGET_TAG..."
+            git checkout "$TARGET_TAG"
+            # If it's a branch (like main), ensure it's up to date
+            if git show-ref --verify --quiet refs/heads/"$TARGET_TAG"; then
+              git pull origin "$TARGET_TAG"
+            fi
+            
+            ACTION="${{ github.event.inputs.action }}"
+            
+            # Inject IMAGE_TAG into a local .env file logic using a temporary variable format
+            # Or export it so docker compose picks it up
+            export IMAGE_TAG="$IMAGE_TAG"
+            
+            if [ "$ACTION" == "restart_only" ]; then
+              echo "Restarting service after ENV changes using image tag $IMAGE_TAG..."
+              IMAGE_TAG=$IMAGE_TAG docker compose up -d --remove-orphans
+              
+            elif [ "$ACTION" == "deploy_only" ]; then
+              echo "Deploying without build (pull latest image $IMAGE_TAG)..."
+              IMAGE_TAG=$IMAGE_TAG docker compose pull
+              IMAGE_TAG=$IMAGE_TAG docker compose up -d --remove-orphans
+              docker image prune -f
+              
+            else
+              echo "Performing full deployment (build + deploy) for tag $TARGET_TAG..."
+              IMAGE_TAG=$IMAGE_TAG docker compose pull
+              IMAGE_TAG=$IMAGE_TAG docker compose up -d --remove-orphans
+              
+              echo "Running Prisma migration sync..."
+              docker compose exec -T app npx prisma migrate deploy
+              
+              docker image prune -f
+            fi
