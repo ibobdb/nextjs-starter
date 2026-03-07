@@ -10,7 +10,7 @@ async function main() {
   const DEFAULT_ADMIN_ID = '23325e20-42ee-4446-8538-8a70142ecf57';
   const DEFAULT_ADMIN_PASSWORD = 'superadmin123';
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: import('@prisma/client').Prisma.TransactionClient) => {
     // 0. CLEANUP LEGACY DATA
     console.log('Cleaning up legacy data (trendscout)...');
     await tx.menu.deleteMany({
