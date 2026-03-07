@@ -16,7 +16,10 @@ export async function sendEmail({
   }
 
   try {
-    const response = await fetch(`${process.env.BETTER_AUTH_URL}/api/mail`, {
+    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000';
+    const safeUrl = baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`;
+    
+    const response = await fetch(`${safeUrl}/api/mail`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
