@@ -65,7 +65,10 @@ export const auth = betterAuth({
       },
     },
   },
-  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+  baseURL: (() => {
+    const url = process.env.BETTER_AUTH_URL || 'http://localhost:3000';
+    return url.startsWith('http') ? url : `https://${url}`;
+  })(),
   secret: process.env.BETTER_AUTH_SECRET,
   emailVerification: {
     sendOnSignUp: true,
