@@ -11,8 +11,8 @@ interface PermissionAlertProps {
 
 export function PermissionAlert({ 
   className, 
-  title = "Mode Baca-Saja", 
-  message = "Anda tidak memiliki izin untuk mengubah data di halaman ini. Silakan hubungi administrator jika Anda memerlukan akses lebih lanjut."
+  title = "Read-Only Mode", 
+  message = "You do not have permission to modify data on this page. Please contact your administrator if you require further access."
 }: PermissionAlertProps) {
   return (
     <div className={cn(
