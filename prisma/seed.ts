@@ -157,8 +157,11 @@ async function main() {
 
     if (userRole) {
       const allPermissions = await tx.permissions.findMany();
-      console.log(`Mapping all ${allPermissions.length} permissions to user role (demo mode)...`);
+      console.log(`Mapping all (safe) permissions to user role (demo mode)...`);
       for (const p of allPermissions) {
+        // Prevent 'user' from accessing core settings in demo mode
+        if (p.module === 'settings') continue;
+
         await tx.rolePermission.upsert({
           where: {
             roleId_permissionId: { roleId: userRole.id, permissionId: p.id },
