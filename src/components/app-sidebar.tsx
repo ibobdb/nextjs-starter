@@ -109,9 +109,12 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
                 <SidebarMenu>
                   {group.children?.map((item) => {
                     const Icon = ICON_MAP[item.icon] || HelpCircle;
+                    // Exact match or sub-route match (avoid partial string matches like /dashboard/lab catching /dashboard/lab/forms)
                     const active =
-                      activeSegment === item.url ||
-                      (item.url && activeSegment.startsWith(item.url + '/'));
+                      item.url && (
+                        activeSegment === item.url ||
+                        (activeSegment.startsWith(item.url + '/') && item.url !== '/dashboard' && item.url !== '/dashboard/lab')
+                      );
 
                     return (
                       <SidebarMenuItem key={item.id}>
