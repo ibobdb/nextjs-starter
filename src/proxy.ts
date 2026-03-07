@@ -22,7 +22,9 @@ const PUBLIC_PATHS = [
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionToken = request.cookies.get('better-auth.session_token');
+  const sessionToken = 
+    request.cookies.get('better-auth.session_token') || 
+    request.cookies.get('__Secure-better-auth.session_token');
   const hasSession = !!sessionToken?.value;
   const isAuthPath = AUTH_PATHS.includes(pathname);
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
