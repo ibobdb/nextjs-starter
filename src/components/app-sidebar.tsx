@@ -14,8 +14,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
-  Database, 
   Home, 
   User2, 
   Users, 
@@ -68,15 +68,18 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
         <div
           className={cn(
             'flex items-center justify-center',
-            isCollapsed ? 'w-full' : 'gap-2'
+            isCollapsed ? 'w-full' : 'gap-3 pl-1 w-full justify-start'
           )}
         >
           {isCollapsed ? (
-            <Database size={20} className="shrink-0 text-primary" />
+            <Image src="/favicon.png" alt="Logo" width={20} height={20} className="shrink-0 object-contain" />
           ) : (
-            <span className="font-extrabold text-primary tracking-widest truncate space-x-7 text-xl">
-              {appName.toUpperCase()}
-            </span>
+            <>
+              <Image src="/favicon.png" alt="Logo" width={24} height={24} className="shrink-0 object-contain" />
+              <span className="font-extrabold text-primary tracking-widest truncate text-xl">
+                {appName.toUpperCase()}
+              </span>
+            </>
           )}
         </div>
       </SidebarHeader>

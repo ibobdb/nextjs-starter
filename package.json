@@ -1,6 +1,19 @@
 {
   "name": "dbstudio",
   "version": "1.0.0",
+  "description": "DB Studio - Advanced RBAC Dashboard System",
+  "author": "ibobdb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ibobdb/nextjs-starter"
+  },
+  "keywords": [
+    "nextjs",
+    "rbac",
+    "dashboard",
+    "better-auth",
+    "admin"
+  ],
   "private": true,
   "scripts": {
     "dev": "next dev",

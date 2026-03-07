@@ -41,5 +41,5 @@ docs/AI_CONTEXT.md
 next-env.d.ts
 
 /app/generated/prisma
-
+/docs-wip
 /src/generated/prisma

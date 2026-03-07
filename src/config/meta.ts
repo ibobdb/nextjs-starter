@@ -10,9 +10,9 @@ import packageJson from '../../package.json';
 export const siteMetadata = {
   name: packageJson.name,
   version: packageJson.version,
-  description: 'DBStudio',
-  author: '',
-  repoUrl: '',
+  description: 'DB Studio - Advanced RBAC Dashboard System',
+  author: 'ibobdb',
+  repoUrl: 'https://github.com/ibobdb/nextjs-starter',
   // You can also mix with env variables if needed
   url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   environment: process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV || 'production',
