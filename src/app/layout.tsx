@@ -14,8 +14,16 @@ const fontMono = Geist_Mono({
 
 import meta from "@/config/meta";
 
+const getSafeUrl = (url: string) => {
+  try {
+    return new URL(url.startsWith('http') ? url : `https://${url}`);
+  } catch {
+    return new URL('http://localhost:3000');
+  }
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(meta.url),
+  metadataBase: getSafeUrl(meta.url),
   title: {
     template: "%s | DB Studio",
     default: "DB Studio | " + meta.description,
