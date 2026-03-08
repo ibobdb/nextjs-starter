@@ -6,11 +6,51 @@ import {
   getVerificationEmailTemplate,
   getPasswordResetEmailTemplate,
 } from '@/utils/templates/';
+import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 
 import { sendEmail } from '@/utils/resend';
 import { logger } from './logger';
 
 const authLogger = logger;
+
+/**
+ * Optimized user relations fetcher with Next.js Data Cache.
+ * Specifically caches roles and permissions for 5 minutes.
+ */
+const getUserRolesAndPermissions = unstable_cache(
+  async (userId: string) => {
+    return await prisma.user.findFirst({
+      where: { id: userId },
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: { permission: true },
+                },
+              },
+            },
+          },
+        },
+        teamMembers: {
+          include: {
+            team: {
+              include: {
+                teamPermissions: {
+                  include: { permission: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  },
+  ['user-auth-info'],
+  { tags: ['user-auth-info'], revalidate: 300 }
+);
 
 authLogger.info('Initializing Better Auth...');
 export const auth = betterAuth({
@@ -33,9 +73,6 @@ export const auth = betterAuth({
         throw error;
       }
     },
-    // onPasswordReset: async ({ user }: any, request: any) => {
-    //   console.log(`Password for user ${user.email} has been reset.`);
-    // },
   },
   databaseHooks: {
     user: {
@@ -101,34 +138,7 @@ export const auth = betterAuth({
     }),
     admin(),
     customSession(async ({ user, session }) => {
-      const userWithRelations = await prisma.user.findFirst({
-        where: { id: session.userId },
-        include: {
-          userRoles: {
-            include: {
-              role: {
-                include: {
-                  rolePermissions: {
-                    include: { permission: true },
-                  },
-                },
-              },
-            },
-          },
-          // Fetch team memberships + team permissions
-          teamMembers: {
-            include: {
-              team: {
-                include: {
-                  teamPermissions: {
-                    include: { permission: true },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
+      const userWithRelations = await getUserRolesAndPermissions(session.userId);
 
       // Role-based permissions
       const rolePermissions: string[] =
@@ -167,3 +177,12 @@ export const auth = betterAuth({
     }),
   ],
 });
+
+/**
+ * Memoized version of getSession for use in React Server Components.
+ * This ensures only one database call is made per request.
+ */
+export const getServerSession = cache(async (headers: Headers) => {
+  return await auth.api.getSession({ headers });
+});
+

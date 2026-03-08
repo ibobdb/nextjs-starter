@@ -1,6 +1,6 @@
 import { eventBus } from '@/lib/events';
 import { NextRequest } from 'next/server';
-import { auth } from '@/lib/auth';
+import { auth, getServerSession } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { logger } from '@/lib/logger';
 
@@ -10,9 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   sseLogger.debug('GET /api/stream/events initiated');
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
+  const session = await getServerSession(await headers());
 
   if (!session?.user) {
     sseLogger.warn('GET /api/stream/events - Unauthorized access attempt');

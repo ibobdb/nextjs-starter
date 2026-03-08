@@ -22,7 +22,7 @@
 
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
+import { auth, getServerSession } from '@/lib/auth';
 import { rateLimit } from '@/lib/rate-limit';
 
 type GuardUser = {
@@ -56,7 +56,7 @@ export async function apiGuard(
   requiredPermission?: string | string[]
 ): Promise<GuardResult> {
   // 1. Session check
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession(await headers());
 
   if (!session) {
     return {
