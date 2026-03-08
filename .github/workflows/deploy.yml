@@ -13,9 +13,9 @@ on:
           - deploy_only
           - restart_only
       tag:
-        description: 'Tag or Branch to deploy (e.g., main, v1.0.0)'
+        description: 'Tag or Branch to deploy (e.g., master, v1.0.0)'
         required: true
-        default: 'main'
+        default: 'master'
         type: string
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.tag || 'main' }}
+          ref: ${{ github.event.inputs.tag || 'master' }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -42,8 +42,8 @@ jobs:
         id: vars
         run: |
           TAG=${{ github.event.inputs.tag }}
-          # Fallback to latest if tag is 'main' or empty
-          if [ "$TAG" == "main" ] || [ -z "$TAG" ]; then
+          # Fallback to latest if tag is 'master' or empty
+          if [ "$TAG" == "master" ] || [ -z "$TAG" ]; then
             echo "IMAGE_TAG=latest" >> $GITHUB_ENV
           else
             echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
@@ -75,8 +75,8 @@ jobs:
             # Setup environment variables
             export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
             export TARGET_TAG="${{ github.event.inputs.tag }}"
-            # Map github tag 'main' to docker tag 'latest'
-            if [ "$TARGET_TAG" == "main" ] || [ -z "$TARGET_TAG" ]; then
+            # Map github tag 'master' to docker tag 'latest'
+            if [ "$TARGET_TAG" == "master" ] || [ -z "$TARGET_TAG" ]; then
               export IMAGE_TAG="latest"
             else
               export IMAGE_TAG="$TARGET_TAG"
@@ -97,7 +97,7 @@ jobs:
             git fetch --all --tags
             echo "Checking out $TARGET_TAG..."
             git checkout "$TARGET_TAG"
-            # If it's a branch (like main), ensure it's up to date
+            # If it's a branch (like master), ensure it's up to date
             if git show-ref --verify --quiet refs/heads/"$TARGET_TAG"; then
               git pull origin "$TARGET_TAG"
             fi
