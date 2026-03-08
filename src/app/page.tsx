@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, ShieldCheck, KeyRound, Users, CheckCircle2, Github, BookOpen, Activity, Lock, Database, Cog } from "lucide-react";
+import { ShieldCheck, KeyRound, Users, CheckCircle2, Github, Activity, Lock, Database, Cog } from "lucide-react";
 import meta from "@/config/meta";
 
 export default function WelcomePage() {

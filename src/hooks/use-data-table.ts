@@ -140,7 +140,6 @@ export function useDataTable<TData>(
   const clientData = mode === 'client' ? options.data : [];
 
   const firstSort = sorting[0];
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable<TData>({
     data: mode === 'client' ? clientData : ([] as TData[]),
     columns,

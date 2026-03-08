@@ -8,10 +8,7 @@
  * every time the page changes, even between pages at the same nesting level.
  */
 
-import { usePathname } from 'next/navigation';
-
 export function PageTransition({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
 
   return (
     <div

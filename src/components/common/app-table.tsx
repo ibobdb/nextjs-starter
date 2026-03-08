@@ -106,7 +106,6 @@ export function AppTable<TData>({
   skeletonRows = 5,
   className,
 }: AppTableProps<TData>) {
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
