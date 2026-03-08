@@ -96,6 +96,12 @@ jobs:
             cd "$APP_DIR"
             git remote set-url origin "$REPO_URL"
             
+            # Ensure .env file exists so docker compose doesn't crash
+            if [ ! -f .env ]; then
+              touch .env
+              echo "Created empty .env file. Please configure variables!"
+            fi
+            
             # Fetch all tags and checkout specific tag or branch
             git fetch --all --tags
             echo "Checking out $TARGET_TAG..."
