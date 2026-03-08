@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { customSession, twoFactor, admin } from 'better-auth/plugins';
 import {
   getVerificationEmailTemplate,
@@ -10,7 +10,6 @@ import {
 import { sendEmail } from '@/utils/resend';
 import { logger } from './logger';
 
-const prisma = new PrismaClient();
 const authLogger = logger;
 
 authLogger.info('Initializing Better Auth...');
@@ -71,7 +70,8 @@ export const auth = betterAuth({
   })(),
   trustedOrigins: [
     process.env.BETTER_AUTH_URL || 'http://localhost:3000',
-    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    ...(process.env.TRUSTED_ORIGINS ? process.env.TRUSTED_ORIGINS.split(',').map(o => o.trim()) : []),
   ],
   secret: process.env.BETTER_AUTH_SECRET,
   emailVerification: {

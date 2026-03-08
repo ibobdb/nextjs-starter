@@ -138,6 +138,7 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
                         >
                           <Link
                             href={item.url || '#'}
+                            prefetch={false}
                             className={cn(
                               'flex items-center',
                               isCollapsed

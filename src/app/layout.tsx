@@ -13,6 +13,7 @@ const fontMono = Geist_Mono({
 });
 
 import meta from "@/config/meta";
+import { SWRProvider } from "@/components/providers/swr-provider";
 
 const getSafeUrl = (url: string) => {
   try {
@@ -67,7 +68,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${fontSans.variable} ${fontMono.variable} antialiased`}>
-        {children}
+        <SWRProvider>
+          {children}
+        </SWRProvider>
       </body>
     </html>
   );
