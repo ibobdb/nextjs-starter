@@ -14,11 +14,28 @@ RUN npm ci
 # 2. Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+# Copy runtime dependencies
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+
+# We explicitly only copy the prisma folder here so that
+# npx prisma generate doesn't trip on missing .env from prisma.config.ts
+COPY prisma ./prisma
+
+# Dummy env for generation
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
 # Generate Prisma Client
 RUN npx prisma generate
+
+# Copy the rest of the application source code
+COPY . .
+
+# Accept build arguments for Next.js public variables (needed during build time)
+ARG NEXT_PUBLIC_BASE_URL
+ARG NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 
 # Build Next.js application
 # This will output to .next/standalone because we configured next.config.ts
