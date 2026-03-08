@@ -38,9 +38,11 @@ export function SystemStatus({ isCollapsed, appName = 'DBS' }: SystemStatusProps
           <span className="text-[11px] font-medium text-foreground truncate leading-tight">
             {appName} v{siteMetadata.version}
           </span>
-          <span className="text-[10px] text-muted-foreground truncate leading-tight">
-            Environment: {siteMetadata.environment || 'Production'}
-          </span>
+          {siteMetadata.environment?.toLowerCase() !== 'production' && (
+            <span className="text-[10px] text-muted-foreground truncate leading-tight">
+              Env: {siteMetadata.environment}
+            </span>
+          )}
         </div>
       )}
     </div>
@@ -57,7 +59,9 @@ export function SystemStatus({ isCollapsed, appName = 'DBS' }: SystemStatusProps
         {isCollapsed && (
           <TooltipContent side="right" className="flex flex-col gap-0.5 px-2 py-1.5">
             <span className="text-[11px] font-semibold">{appName} v{siteMetadata.version}</span>
-            <span className="text-[10px] text-muted-foreground">Environment: {siteMetadata.environment || 'Production'}</span>
+            {siteMetadata.environment?.toLowerCase() !== 'production' && (
+              <span className="text-[10px] text-muted-foreground">Env: {siteMetadata.environment}</span>
+            )}
             <span className="text-[9px] text-green-500 font-medium mt-0.5">● Online</span>
           </TooltipContent>
         )}

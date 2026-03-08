@@ -51,7 +51,11 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
   const isCollapsed = state === 'collapsed';
   const activeSegment = pathname;
 
-  const { data: menus, isLoading } = useSWR('/api/menus', fetcher);
+  const { data: menus, isLoading } = useSWR('/api/menus', fetcher, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+    dedupingInterval: 300000,
+  });
 
   return (
     <Sidebar

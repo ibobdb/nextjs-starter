@@ -24,8 +24,12 @@ export function RouteGuard() {
   const router = useRouter();
   const { session, isLoading: isSessionLoading } = useSession();
   
-  // Fetch only authorized menus for current user
-  const { data: authorizedMenus, isLoading: isMenusLoading } = useSWR('/api/menus', fetcher);
+  // Fetch only authorized menus for current user - Optimized for performance
+  const { data: authorizedMenus, isLoading: isMenusLoading } = useSWR('/api/menus', fetcher, {
+    revalidateOnFocus: false, // Don't refetch on window focus
+    revalidateIfStale: false, // Don't refetch if we already have it
+    dedupingInterval: 300000, // Deduplicate for 5 minutes
+  });
 
   const flatAuthorizedUrls = useMemo(() => {
     if (!authorizedMenus || !Array.isArray(authorizedMenus)) return [];
