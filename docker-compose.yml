@@ -7,10 +7,9 @@ services:
     container_name: dbstudio-app
     restart: always
     ports:
-      - "3000:3000"
+      - "${PORT:-8888}:${PORT:-8888}"
     # Membaca variabel dari file .env di level direktori VPS (bukan di repository)
     env_file:
       - .env
     environment:
       - NODE_ENV=production
-      - PORT=3000
