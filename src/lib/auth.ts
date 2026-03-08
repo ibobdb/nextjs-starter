@@ -132,6 +132,9 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 1,
     updateAge: 60 * 60,
   },
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === 'production',
+  },
   plugins: [
     twoFactor({
       issuer: 'DBStudio Dashboard',
