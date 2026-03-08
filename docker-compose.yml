@@ -1,13 +1,11 @@
 
 services:
   app:
-    # Nama image disesuaikan dengan workflow GitHub Actions
     image: ${DOCKERHUB_USERNAME:-yourusername}/dbstudio-app:${IMAGE_TAG:-latest}
     container_name: dbstudio-app
     restart: unless-stopped
     ports:
       - "127.0.0.1:${PORT:-8888}:${PORT:-8888}"
-    # Membaca variabel dari file .env di level direktori VPS (bukan di repository)
     env_file:
       - .env
     environment:
