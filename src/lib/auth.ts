@@ -16,34 +16,67 @@ const authLogger = logger;
  * Optimized user relations fetcher with Next.js Data Cache.
  * Specifically caches roles and permissions for 5 minutes.
  */
-const getUserRolesAndPermissions = async (userId: string) => {
-  return await prisma.user.findFirst({
-    where: { id: userId },
+const userRelationsInclude = {
+  userRoles: {
     include: {
-        userRoles: {
-          include: {
-            role: {
-              include: {
-                rolePermissions: {
-                  include: { permission: true },
-                },
-              },
-            },
+      role: {
+        include: {
+          rolePermissions: {
+            include: { permission: true },
           },
         },
-        teamMembers: {
-          include: {
-            team: {
-              include: {
-                teamPermissions: {
-                  include: { permission: true },
-                },
-              },
-            },
-          },
-        },
+      },
     },
+  },
+  teamMembers: {
+    include: {
+      team: {
+        include: {
+          teamPermissions: {
+            include: { permission: true },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+const getUserRolesAndPermissions = async (userId: string) => {
+  let user = await prisma.user.findFirst({
+    where: { id: userId },
+    include: userRelationsInclude,
   });
+
+  // Auto-heal missing 'user' role in production (failsafe if database hook skipped)
+  if (user && user.userRoles.length === 0) {
+    try {
+      const defaultRole = await prisma.roles.findFirst({
+        where: { name: { equals: 'user', mode: 'insensitive' } },
+      });
+      
+      if (defaultRole) {
+        const existingMap = await prisma.userRole.findFirst({
+          where: { userId: user.id, roleId: defaultRole.id },
+        });
+        
+        if (!existingMap) {
+          await prisma.userRole.create({
+            data: { userId: user.id, roleId: defaultRole.id },
+          });
+          
+          // Re-fetch fully hydrated user details
+          user = await prisma.user.findFirst({
+            where: { id: userId },
+            include: userRelationsInclude,
+          });
+        }
+      }
+    } catch (e) {
+      authLogger.error('Failed to auto-heal missing user role', e);
+    }
+  }
+
+  return user;
 };
 
 authLogger.info('Initializing Better Auth...');
