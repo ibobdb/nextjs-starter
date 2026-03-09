@@ -2,7 +2,6 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { cookies } from 'next/headers';
 import { AppNavbar } from '@/components/app-navbar';
-import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { NotificationProvider } from '@/lib/notification-package';
 import { RouteGuard } from '@/lib/rbac/components/RouteGuard';
@@ -21,13 +20,7 @@ export default async function DashboardLayout({
   const appName = await getSystemConfig('APP_NAME', process.env.APP_NAME || 'DBS') as string;
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <NotificationProvider>
+    <NotificationProvider>
         <DialogProvider>
           <RouteGuard />
           <SidebarProvider defaultOpen={defaultOpen}>
@@ -44,7 +37,6 @@ export default async function DashboardLayout({
           </SidebarProvider>
         </DialogProvider>
       </NotificationProvider>
-    </ThemeProvider>
   );
 }
 

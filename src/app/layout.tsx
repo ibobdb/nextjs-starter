@@ -14,6 +14,7 @@ const fontMono = Geist_Mono({
 
 import meta from "@/config/meta";
 import { SWRProvider } from "@/components/providers/swr-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const getSafeUrl = (url: string) => {
   try {
@@ -68,9 +69,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${fontSans.variable} ${fontMono.variable} antialiased`}>
-        <SWRProvider>
-          {children}
-        </SWRProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SWRProvider>
+            {children}
+          </SWRProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
