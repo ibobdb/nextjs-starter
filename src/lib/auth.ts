@@ -72,9 +72,9 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          // 1. Assign 'user' role in our RBAC system
+          // 1. Assign 'user' role in our RBAC system (case-insensitive)
           const userRole = await prisma.roles.findFirst({
-            where: { name: 'user' },
+            where: { name: { equals: 'user', mode: 'insensitive' } },
           });
 
           if (userRole) {
