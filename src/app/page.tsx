@@ -7,7 +7,7 @@ import meta from "@/config/meta";
 
 export default function WelcomePage() {
   return (
-    <div className="flex h-screen flex-col bg-background font-sans overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-background font-sans overflow-x-hidden">
       {/* Navigation */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-6 lg:px-12">
@@ -23,13 +23,13 @@ export default function WelcomePage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-hidden relative flex flex-col justify-center">
+      <main className="flex-1 relative flex flex-col justify-center py-12 lg:py-0">
         {/* Custom Background Decoration */}
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_80%_at_50%_0%,rgba(var(--primary),0.15),rgba(255,255,255,0))] dark:bg-[radial-gradient(ellipse_80%_80%_at_50%_0%,rgba(var(--primary),0.07),rgba(0,0,0,0))]"></div>
         
         <div className="container mx-auto px-6 lg:px-12">
           {/* Hero Section Split Layout */}
-          <section className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center py-10 lg:py-0 h-full">
+          <section className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center py-10 lg:py-20">
             
             {/* Left Content */}
             <div className="flex flex-col items-center text-center lg:items-start lg:text-left z-10">
@@ -48,7 +48,7 @@ export default function WelcomePage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <Link href="/login" className="w-full sm:w-auto">
+                <Link href="/auth/login" className="w-full sm:w-auto">
                   <Button className="rounded-full h-12 px-8 text-sm font-semibold w-full shadow-md hover:shadow-lg transition-all cursor-pointer group">
                     Live Demo
                   </Button>
