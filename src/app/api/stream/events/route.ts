@@ -1,6 +1,6 @@
 import { eventBus } from '@/lib/events';
 import { NextRequest } from 'next/server';
-import { auth, getServerSession } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { logger } from '@/lib/logger';
 

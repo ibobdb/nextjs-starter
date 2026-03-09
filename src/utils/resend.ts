@@ -16,32 +16,13 @@ export async function sendEmail({
   }
 
   try {
-    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000';
-    const safeUrl = baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`;
-    
-    const response = await fetch(`${safeUrl}/api/mail`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        to,
-        subject,
-        html,
-        from,
-      }),
+    const { sendEmailDirect } = await import('@/lib/mail');
+    return await sendEmailDirect({
+      to,
+      subject,
+      html,
+      from,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      const errorMsg = typeof errorData.message === 'string' 
-        ? errorData.message 
-        : (errorData.error?.message || JSON.stringify(errorData.error || errorData));
-      throw new Error(`Email API error: ${errorMsg}`);
-    }
-
-    const result = await response.json();
-    return result;
   } catch (error) {
     console.error('Failed to send email:', error);
     throw error;
