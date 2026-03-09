@@ -100,6 +100,7 @@ export const auth = betterAuth({
           });
           
           // 3. Invalidate the user-specific cache so customSession gets the updated role instantly
+          // @ts-expect-error Next.js 15 canary requires a second profile argument in types but not at runtime for unstable_cache
           revalidateTag(`user-auth-info-${user.id}`);
         },
       },
