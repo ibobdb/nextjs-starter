@@ -12,11 +12,6 @@ on:
           - deploy
           - deploy_only
           - restart_only
-      tag:
-        description: 'Tag or Branch to deploy (e.g., master, v1.0.0)'
-        required: true
-        default: 'master'
-        type: string
 
 jobs:
   build:
@@ -26,7 +21,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.tag || 'master' }}
+          ref: ${{ github.ref_name }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -41,7 +36,7 @@ jobs:
       - name: Set Tag Name
         id: vars
         run: |
-          TAG=${{ github.event.inputs.tag }}
+          TAG=${{ github.ref_name }}
           # Fallback to latest if tag is 'master' or empty
           if [ "$TAG" == "master" ] || [ -z "$TAG" ]; then
             echo "IMAGE_TAG=latest" >> $GITHUB_ENV
@@ -77,8 +72,8 @@ jobs:
             
             # Setup environment variables
             export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
-            export TARGET_TAG="${{ github.event.inputs.tag }}"
-            # Map github tag 'master' to docker tag 'latest'
+            export TARGET_TAG="${{ github.ref_name }}"
+            # Map github tag 'master' or 'main' to docker tag 'latest'
             if [ "$TARGET_TAG" == "master" ] || [ -z "$TARGET_TAG" ]; then
               export IMAGE_TAG="latest"
             else

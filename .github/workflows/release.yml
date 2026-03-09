@@ -24,13 +24,10 @@ jobs:
           fetch-depth: 0
 
       - name: Create Tag and Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.inputs.version }}
-          name: Release ${{ github.event.inputs.version }}
-          body: ${{ github.event.inputs.notes }}
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+        run: |
+          gh release create "${{ github.event.inputs.version }}" \
+            --title "Release ${{ github.event.inputs.version }}" \
+            --notes "${{ github.event.inputs.notes }}" \
+            --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
