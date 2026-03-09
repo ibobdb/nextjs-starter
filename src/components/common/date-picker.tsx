@@ -20,6 +20,10 @@ export interface DatePickerProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  /** Earliest month to show in the dropdown */
+  startMonth?: Date;
+  /** Latest month to show in the dropdown */
+  endMonth?: Date;
 }
 
 /**
@@ -33,6 +37,8 @@ export function DatePicker({
   placeholder = 'Pick a date',
   className,
   disabled,
+  startMonth = new Date(1900, 0),
+  endMonth = new Date(2100, 11),
 }: DatePickerProps) {
   return (
     <Popover>
@@ -56,6 +62,9 @@ export function DatePicker({
           selected={date}
           onSelect={onChange}
           initialFocus
+          captionLayout="dropdown"
+          startMonth={startMonth}
+          endMonth={endMonth}
         />
       </PopoverContent>
     </Popover>

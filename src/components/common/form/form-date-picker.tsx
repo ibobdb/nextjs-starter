@@ -17,6 +17,10 @@ export interface FormDatePickerProps<T extends FieldValues> {
   description?: string;
   placeholder?: string;
   disabled?: boolean;
+  /** Earliest month to show in the dropdown */
+  startMonth?: Date;
+  /** Latest month to show in the dropdown */
+  endMonth?: Date;
 }
 
 /**
@@ -31,6 +35,8 @@ export function FormDatePicker<T extends FieldValues>({
   description,
   placeholder,
   disabled,
+  startMonth,
+  endMonth,
 }: FormDatePickerProps<T>) {
   return (
     <FormField
@@ -45,6 +51,8 @@ export function FormDatePicker<T extends FieldValues>({
               onChange={field.onChange}
               placeholder={placeholder}
               disabled={disabled}
+              startMonth={startMonth}
+              endMonth={endMonth}
             />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}
