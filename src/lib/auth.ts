@@ -6,9 +6,8 @@ import {
   getVerificationEmailTemplate,
   getPasswordResetEmailTemplate,
 } from '@/utils/templates/';
-import { unstable_cache } from 'next/cache';
+import { unstable_cache, revalidateTag } from 'next/cache';
 import { cache } from 'react';
-
 import { sendEmail } from '@/utils/resend';
 import { logger } from './logger';
 
@@ -18,11 +17,12 @@ const authLogger = logger;
  * Optimized user relations fetcher with Next.js Data Cache.
  * Specifically caches roles and permissions for 5 minutes.
  */
-const getUserRolesAndPermissions = unstable_cache(
-  async (userId: string) => {
-    return await prisma.user.findFirst({
-      where: { id: userId },
-      include: {
+const getUserRolesAndPermissions = async (userId: string) => {
+  return unstable_cache(
+    async () => {
+      return await prisma.user.findFirst({
+        where: { id: userId },
+        include: {
         userRoles: {
           include: {
             role: {
@@ -45,12 +45,13 @@ const getUserRolesAndPermissions = unstable_cache(
             },
           },
         },
-      },
-    });
-  },
-  ['user-auth-info'],
-  { tags: ['user-auth-info'], revalidate: 300 }
-);
+        },
+      });
+    },
+    [`user-auth-info-${userId}`],
+    { tags: [`user-auth-info-${userId}`], revalidate: 300 }
+  )();
+};
 
 authLogger.info('Initializing Better Auth...');
 export const auth = betterAuth({
@@ -97,6 +98,9 @@ export const auth = betterAuth({
             where: { id: user.id },
             data: { role: 'user' },
           });
+          
+          // 3. Invalidate the user-specific cache so customSession gets the updated role instantly
+          revalidateTag(`user-auth-info-${user.id}`);
         },
       },
     },
