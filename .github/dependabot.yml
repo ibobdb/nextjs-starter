@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: "next"
+        versions: ["15.0.0-canary*"] # Hindari update otomatis ke canary yang labil
+    labels:
+      - "security"
+      - "dependencies"
