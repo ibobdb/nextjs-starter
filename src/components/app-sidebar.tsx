@@ -27,7 +27,6 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import useSWR from 'swr';
 import { SystemStatus } from '@/components/system-status';
@@ -63,32 +62,22 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
       collapsible="icon"
       className="border-r bg-background"
     >
-      <SidebarHeader
-        className={cn(
-          'border-b border-border transition-all duration-300 ease-in-out',
-          isCollapsed ? 'p-0 py-4 flex items-center justify-center' : 'p-4'
-        )}
-      >
-        <div
-          className={cn(
-            'flex items-center justify-center transition-all duration-300 ease-in-out',
-            isCollapsed ? 'w-full' : 'gap-3 pl-1 w-full justify-start'
-          )}
-        >
-          {isCollapsed ? (
-            <Image src="/favicon.png" alt="Logo" width={20} height={20} className="shrink-0 object-contain" />
-          ) : (
-            <>
-              <Image src="/favicon.png" alt="Logo" width={24} height={24} className="shrink-0 object-contain" />
-              <span className="font-bold text-primary tracking-widest truncate text-lg">
-                {appName.toUpperCase()}
-              </span>
-            </>
-          )}
-        </div>
+      <SidebarHeader className="border-b border-border py-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild className="hover:bg-transparent cursor-default">
+              <Link href="/dashboard" className="flex items-center gap-3">
+                <Image src="/favicon.png" alt="Logo" width={24} height={24} className="shrink-0 object-contain" />
+                <span className="font-bold text-primary tracking-widest truncate text-lg group-data-[collapsible=icon]:hidden">
+                  {appName.toUpperCase()}
+                </span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className={cn('transition-all duration-300 ease-in-out', isCollapsed && 'px-0')}>
+      <SidebarContent>
         {isLoading ? (
           <div className="p-4 space-y-4">
             <Skeleton className="h-4 w-20" />
@@ -99,15 +88,10 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
           </div>
         ) : (
           menus?.map((group: { id: string; title: string; children: Array<{ id: string; title: string; url?: string; icon: string }> }) => (
-            <SidebarGroup
-              key={group.id}
-              className={cn('transition-all duration-300 ease-in-out', isCollapsed && 'px-0')}
-            >
-              {!isCollapsed && (
-                <SidebarGroupLabel className="text-xs font-medium text-muted-foreground/80 px-3 flex justify-between items-center uppercase tracking-wider">
-                  {group.title}
-                </SidebarGroupLabel>
-              )}
+            <SidebarGroup key={group.id}>
+              <SidebarGroupLabel className="text-xs font-medium text-muted-foreground/80 flex justify-between items-center uppercase tracking-wider group-data-[collapsible=icon]:hidden">
+                {group.title}
+              </SidebarGroupLabel>
 
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -125,36 +109,11 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
                         <SidebarMenuButton
                           asChild
                           isActive={!!active}
-                          tooltip={isCollapsed ? (item.title || undefined) : undefined}
-                          className={cn(
-                            'flex items-center gap-3 rounded-md transition-colors',
-                            isCollapsed
-                              ? 'justify-center px-0 py-2.5 mx-auto w-fit hover:bg-transparent'
-                              : 'justify-between px-3 py-2',
-                            active
-                              ? 'bg-accent text-accent-foreground font-medium'
-                              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                          )}
+                          tooltip={item.title}
                         >
-                          <Link
-                            href={item.url || '#'}
-                            prefetch={false}
-                            className={cn(
-                              'flex items-center',
-                              isCollapsed
-                                ? 'justify-center w-full'
-                                : 'w-full justify-between'
-                            )}
-                          >
-                            <div
-                              className={cn(
-                                'flex items-center transition-all duration-300 ease-in-out',
-                                isCollapsed ? '' : 'gap-3'
-                              )}
-                            >
-                              <Icon size={18} className="shrink-0" />
-                              {!isCollapsed && <span>{item.title}</span>}
-                            </div>
+                          <Link href={item.url || '#'}>
+                            <Icon />
+                            <span>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -167,12 +126,7 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
         )}
       </SidebarContent>
 
-      <SidebarFooter
-        className={cn(
-          'mt-auto border-t border-border transition-all duration-300 ease-in-out',
-          isCollapsed ? 'p-0 py-4 flex items-center justify-center' : 'p-4'
-        )}
-      >
+      <SidebarFooter className="mt-auto border-t border-border p-4 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:py-4">
         <SystemStatus isCollapsed={isCollapsed} appName={appName} />
       </SidebarFooter>
     </Sidebar>
