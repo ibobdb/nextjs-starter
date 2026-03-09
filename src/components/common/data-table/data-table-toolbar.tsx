@@ -29,25 +29,26 @@ export function DataTableToolbar({
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
       {/* Left: search */}
       <div className="relative w-full sm:max-w-xs">
-        {isLoading ? (
-          <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground animate-spin" />
-        ) : (
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-        )}
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
-          className="pl-9 pr-8 h-9 text-sm"
+          className="pl-9 pr-12 h-9 text-sm"
         />
-        {search && (
-          <button
-            onClick={() => onSearchChange('')}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          {isLoading && (
+            <Loader2 className="h-3.5 w-3.5 text-muted-foreground animate-spin" />
+          )}
+          {search && (
+            <button
+              onClick={() => onSearchChange('')}
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center p-0.5"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Right: bulk actions (visible when selection > 0) or regular actions */}

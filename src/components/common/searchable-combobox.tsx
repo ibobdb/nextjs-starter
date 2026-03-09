@@ -236,16 +236,16 @@ export function SearchableComboBox(props: SearchableComboBoxProps) {
         <Command
           shouldFilter={mode === 'client'} // Only cmdk filters if in client mode
         >
-          <div className="flex items-center border-b px-3">
-            {isFetching ? (
-              <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin opacity-50" />
-            ) : null}
+          <div className="relative">
             <CommandInput
               placeholder={searchPlaceholder}
               value={search}
               onValueChange={setSearch}
-              className={cn("flex-1", isFetching && "ml-0")}
+              className="pr-8"
             />
+            {isFetching && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground opacity-50" />
+            )}
           </div>
           
           <CommandList>
