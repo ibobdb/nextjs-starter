@@ -6,7 +6,6 @@ import {
   getVerificationEmailTemplate,
   getPasswordResetEmailTemplate,
 } from '@/utils/templates/';
-import { unstable_cache, revalidateTag } from 'next/cache';
 import { cache } from 'react';
 import { sendEmail } from '@/utils/resend';
 import { logger } from './logger';
@@ -18,11 +17,9 @@ const authLogger = logger;
  * Specifically caches roles and permissions for 5 minutes.
  */
 const getUserRolesAndPermissions = async (userId: string) => {
-  return unstable_cache(
-    async () => {
-      return await prisma.user.findFirst({
-        where: { id: userId },
-        include: {
+  return await prisma.user.findFirst({
+    where: { id: userId },
+    include: {
         userRoles: {
           include: {
             role: {
@@ -45,12 +42,8 @@ const getUserRolesAndPermissions = async (userId: string) => {
             },
           },
         },
-        },
-      });
     },
-    [`user-auth-info-${userId}`],
-    { tags: [`user-auth-info-${userId}`], revalidate: 300 }
-  )();
+  });
 };
 
 authLogger.info('Initializing Better Auth...');
@@ -98,10 +91,6 @@ export const auth = betterAuth({
             where: { id: user.id },
             data: { role: 'user' },
           });
-          
-          // 3. Invalidate the user-specific cache so customSession gets the updated role instantly
-          // @ts-expect-error Next.js 15 canary requires a second profile argument in types but not at runtime for unstable_cache
-          revalidateTag(`user-auth-info-${user.id}`);
         },
       },
     },
