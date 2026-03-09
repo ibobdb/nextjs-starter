@@ -1,10 +1,7 @@
 import 'dotenv/config';
 import { NextRequest } from 'next/server';
-import { NextRequest } from 'next/server';
 import { createApiResponse } from '@/lib/api-response';
 import { logger } from '@/lib/logger';
-
-const mailLogger = logger;
 
 const mailLogger = logger;
 
