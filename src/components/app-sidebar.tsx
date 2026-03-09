@@ -65,13 +65,13 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
     >
       <SidebarHeader
         className={cn(
-          'border-b border-border',
+          'border-b border-border transition-all duration-300 ease-in-out',
           isCollapsed ? 'p-0 py-4 flex items-center justify-center' : 'p-4'
         )}
       >
         <div
           className={cn(
-            'flex items-center justify-center',
+            'flex items-center justify-center transition-all duration-300 ease-in-out',
             isCollapsed ? 'w-full' : 'gap-3 pl-1 w-full justify-start'
           )}
         >
@@ -80,7 +80,7 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
           ) : (
             <>
               <Image src="/favicon.png" alt="Logo" width={24} height={24} className="shrink-0 object-contain" />
-              <span className="font-extrabold text-primary tracking-widest truncate text-xl">
+              <span className="font-bold text-primary tracking-widest truncate text-lg">
                 {appName.toUpperCase()}
               </span>
             </>
@@ -88,7 +88,7 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className={cn(isCollapsed && 'px-0')}>
+      <SidebarContent className={cn('transition-all duration-300 ease-in-out', isCollapsed && 'px-0')}>
         {isLoading ? (
           <div className="p-4 space-y-4">
             <Skeleton className="h-4 w-20" />
@@ -101,7 +101,7 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
           menus?.map((group: { id: string; title: string; children: Array<{ id: string; title: string; url?: string; icon: string }> }) => (
             <SidebarGroup
               key={group.id}
-              className={cn(isCollapsed && 'px-0')}
+              className={cn('transition-all duration-300 ease-in-out', isCollapsed && 'px-0')}
             >
               {!isCollapsed && (
                 <SidebarGroupLabel className="text-xs font-medium text-muted-foreground/80 px-3 flex justify-between items-center uppercase tracking-wider">
@@ -148,7 +148,7 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
                           >
                             <div
                               className={cn(
-                                'flex items-center',
+                                'flex items-center transition-all duration-300 ease-in-out',
                                 isCollapsed ? '' : 'gap-3'
                               )}
                             >
@@ -169,7 +169,7 @@ export function AppSidebar({ appName = 'DBS' }: { appName?: string }) {
 
       <SidebarFooter
         className={cn(
-          'mt-auto border-t border-border',
+          'mt-auto border-t border-border transition-all duration-300 ease-in-out',
           isCollapsed ? 'p-0 py-4 flex items-center justify-center' : 'p-4'
         )}
       >
