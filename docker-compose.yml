@@ -1,24 +1,23 @@
-
 services:
-  app:
-    image: ${DOCKERHUB_USERNAME:-yourusername}/dbstudio-app:${IMAGE_TAG:-latest}
+  dbstudio-app:
+    image: ibobdb/dbstudio-app:latest
     container_name: dbstudio-app
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:${PORT:-8888}:${PORT:-8888}"
     env_file:
       - .env
-    environment:
-      - TZ=Asia/Jakarta
-      - NODE_ENV=production
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '10m'
-        max-file: '3'
+    expose:
+      - "8083"
     networks:
-      - caddy_network
+      - proxy
+      - internal
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  caddy_network:
+  proxy:
+    external: true
+  internal:
     external: true
