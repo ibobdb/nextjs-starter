@@ -223,7 +223,7 @@ Props sama dengan `<Can>`, tapi `role: string | string[]` sebagai ganti `permiss
 - Tambahkan URL ke array `WHITELIST` di `RouteGuard.tsx`
 - Atau buat route di luar `/dashboard`
 
-> **Catatan:** RouteGuard hanya berjalan di client side setelah mount. Ada celah singkat (flash) sebelum redirect terjadi. Untuk proteksi yang lebih ketat, gunakan middleware server-side atau page-level server component guard.
+> **Catatan:** RouteGuard hanya berjalan di client side setelah mount. Ada celah singkat (flash) sebelum redirect terjadi. Proteksi server-side yang lebih ketat ditangani oleh `src/proxy.ts` (Next.js proxy) yang berjalan sebelum request mencapai route handler.
 
 ---
 

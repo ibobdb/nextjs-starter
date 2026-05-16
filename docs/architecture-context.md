@@ -22,12 +22,13 @@
 
 ```
 Browser
-  └─► Next.js Route Handler
-        └─► RouteGuard (client component, layout level)
-              ├─ Redirect if no session
-              └─ Redirect if route not in authorized menu list
-        └─► API Route Handler
-              └─► apiGuard(permission?)
+  └─► proxy.ts (server-side — auth redirect + RBAC permission check)
+        └─► Next.js Route Handler
+              └─► RouteGuard (client component, layout level)
+                    ├─ Redirect if no session
+                    └─ Redirect if route not in authorized menu list
+              └─► API Route Handler
+                    └─► apiGuard(permission?)
                     ├─ 401 if no session
                     ├─ 429 if rate-limited
                     ├─ 403 if permission missing
@@ -51,7 +52,7 @@ Client component mounted in the dashboard layout. Runs on every route change.
 
 **On failure:** `router.replace('/dashboard/default')`
 
-> **Note:** RouteGuard does NOT redirect unauthenticated users to a login page — it only guards within the `/dashboard` namespace. Unauthenticated users hitting `/dashboard` are handled by the session check in the route itself or a middleware layer.
+> **Note:** RouteGuard does NOT redirect unauthenticated users to a login page — it only guards within the `/dashboard` namespace. Unauthenticated users are intercepted earlier by `src/proxy.ts` before they reach any route.
 
 ---
 
@@ -232,6 +233,7 @@ Copy `.env.example` to `.env` before first run.
 
 | File | Responsibility |
 |------|---------------|
+| `src/proxy.ts` | Next.js proxy (replaces middleware) — auth redirect + RBAC permission check per route |
 | `src/lib/auth.ts` | Better Auth config; custom session plugin adding `roles`, `permissions`, `teams` to session |
 | `src/lib/api-guard.ts` | `apiGuard()` — session + rate limit + permission check for API routes |
 | `src/lib/prisma.ts` | Prisma client singleton |

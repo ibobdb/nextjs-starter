@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { hashPassword } from 'better-auth/crypto';
+import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -88,6 +89,7 @@ async function main() {
         banned: false,
       },
       create: {
+        id: randomUUID(),
         name: 'Super Admin',
         email: DEFAULT_ADMIN_EMAIL,
         emailVerified: true,
