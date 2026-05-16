@@ -86,7 +86,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    minPasswordLength: 5,
+    minPasswordLength: 8,
     maxPasswordLength: 128,
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
@@ -156,8 +156,8 @@ export const auth = betterAuth({
   },
 
   session: {
-    expiresIn: 60 * 60 * 24 * 1,
-    updateAge: 60 * 60,
+    expiresIn: parseInt(process.env.SESSION_EXPIRY_SECONDS ?? '86400', 10),
+    updateAge: parseInt(process.env.SESSION_UPDATE_AGE_SECONDS ?? '3600', 10),
   },
   advanced: {
     useSecureCookies: process.env.NODE_ENV === 'production',

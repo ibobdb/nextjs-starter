@@ -6,9 +6,12 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Starting transactional seeding of Base Project...');
 
-  const DEFAULT_ADMIN_EMAIL = 'admin@starter.com';
-  const DEFAULT_ADMIN_ID = '23325e20-42ee-4446-8538-8a70142ecf57';
-  const DEFAULT_ADMIN_PASSWORD = 'superadmin123';
+  const DEFAULT_ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'admin@starter.com';
+  const DEFAULT_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? (() => {
+    const generated = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+    console.log(`\n⚠️  No SEED_ADMIN_PASSWORD set. Generated password: ${generated}\n   Save this — it will not be shown again.\n`);
+    return generated;
+  })();
 
   await prisma.$transaction(async (tx: import('@prisma/client').Prisma.TransactionClient) => {
     // 0. CLEANUP LEGACY DATA
@@ -85,7 +88,6 @@ async function main() {
         banned: false,
       },
       create: {
-        id: DEFAULT_ADMIN_ID,
         name: 'Super Admin',
         email: DEFAULT_ADMIN_EMAIL,
         emailVerified: true,
@@ -177,11 +179,11 @@ async function main() {
 
     // 7. SYSTEM CONFIGURATION
     const initialConfigs = [
-      { key: 'APP_NAME', value: 'DB STUDIO Dashboard', description: 'Application Name', isSecret: false },
+      { key: 'APP_NAME', value: process.env.APP_NAME ?? 'My App', description: 'Application Name', isSecret: false },
       { key: 'APP_DESCRIPTION', value: 'A powerful Next.js RBAC platform', description: 'Application Description (SEO)', isSecret: false },
-      { key: 'COMPANY_NAME', value: 'DB STUDIO', description: 'Company Legal Name', isSecret: false },
-      { key: 'APP_URL', value: 'http://localhost:3000', description: 'Base Application URL', isSecret: false },
-      { key: 'EMAIL_FROM', value: 'noreply@ibobdb.com', description: 'Default sender email address', isSecret: false },
+      { key: 'COMPANY_NAME', value: process.env.APP_NAME ?? 'My Company', description: 'Company Legal Name', isSecret: false },
+      { key: 'APP_URL', value: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000', description: 'Base Application URL', isSecret: false },
+      { key: 'EMAIL_FROM', value: process.env.EMAIL_FROM ?? 'noreply@example.com', description: 'Default sender email address', isSecret: false },
     ];
 
     for (const config of initialConfigs) {

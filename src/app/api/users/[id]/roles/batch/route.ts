@@ -50,12 +50,12 @@ export async function PUT(
     }
 
     // Hierarchy check 2: Can the actor assign each of the requested roles?
-    if (roleIds.length > 0) {
-      const singleRoleId = Number(roleIds[0]);
-      const targetRole = await prisma.roles.findUnique({ where: { id: singleRoleId } });
-      
+    for (const rawId of roleIds) {
+      const roleId = Number(rawId);
+      const targetRole = await prisma.roles.findUnique({ where: { id: roleId } });
+
       if (!targetRole) {
-        return NextResponse.json(createApiResponse(false, 'Role not found'), { status: 404 });
+        return NextResponse.json(createApiResponse(false, `Role id ${roleId} not found`), { status: 404 });
       }
 
       if (!canManageRole(actorRoles, targetRole.name)) {
@@ -70,20 +70,15 @@ export async function PUT(
     // Run in a transaction to ensure atomic replacement
     await prisma.$transaction(async (tx) => {
       // 1. Delete all existing roles for this user
-      await tx.userRole.deleteMany({
-        where: { userId },
-      });
+      await tx.userRole.deleteMany({ where: { userId } });
 
-      // 2. Insert new roles if any exist
+      // 2. Insert new roles (supports multiple)
       if (roleIds.length > 0) {
-        // Enforce max 1 role per user
-        const singleRoleId = Number(roleIds[0]);
-        
-        await tx.userRole.create({
-          data: {
+        await tx.userRole.createMany({
+          data: roleIds.map((rawId: unknown) => ({
             userId,
-            roleId: singleRoleId,
-          },
+            roleId: Number(rawId),
+          })),
         });
       }
     });

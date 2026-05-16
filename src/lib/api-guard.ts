@@ -31,6 +31,7 @@ type GuardUser = {
   name: string;
   permissions: string[];
   roles: string[];
+  banned?: boolean | null;
 };
 
 type GuardSuccess = {
@@ -70,7 +71,18 @@ export async function apiGuard(
 
   const user = session.user as unknown as GuardUser;
 
-  // 2. Rate Limiting Check
+  // 2. Banned user check
+  if (user.banned) {
+    return {
+      error: NextResponse.json(
+        { success: false, error: 'Forbidden', message: 'Your account has been suspended' },
+        { status: 403 }
+      ),
+      session: null,
+    };
+  }
+
+  // 3. Rate Limiting Check
   // Global limit for authenticated users: 200 requests per 60 seconds (generous standard for dashboards)
   const rl = rateLimit(`user_${user.id}`, { limit: 200, windowMs: 60000 });
   
@@ -81,7 +93,7 @@ export async function apiGuard(
     };
   }
 
-  // 3. Permission check (if requested)
+  // 4. Permission check (if requested)
   if (requiredPermission) {
     const userRoles: string[] = user.roles ?? [];
     const isSuperAdmin = userRoles.includes('super_admin');
